@@ -1,0 +1,54 @@
+[tool.poetry]
+name = "data-science-examples"
+version = "0.1.0"
+description = ""
+authors = ["baw <baw@hogwild.dev>"]
+readme = "README.md"
+packages = [{include = "app/internal"}]
+
+[tool.poetry.scripts]
+serve = "app.internal.__main__:serve"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+torch = "^1.13.1"
+numpy = "^1.24.2"
+spacy = "^3.5.0"
+scikit-learn = "^1.2.1"
+nltk = "^3.8.1"
+textblob = "^0.17.1"
+spacy-transformers = "^1.2.2"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^22.12.0"
+isort = "^5.11.4"
+python-lsp-server = {extras = ["all"], version = "^1.7.1"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+include = '\.pyi?$'
+exclude = '''
+/(
+		\.eggs
+	|	\.git
+	|	\.hg
+	|	\.mypy_cache
+	|	\.tox
+	|	\.venv
+	| _build
+	| build
+	| dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+src_paths = ["app"]
+multi_line_output = 3
+sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
+
