@@ -20,3 +20,12 @@ presentation with the corresponding [github](https://github.com/keithgalli/pycon
 - stemming-lemmatization.py
 - stopwords.py
 - other-tech.py
+
+The following example is the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt)
+- hugging-face-course/transformer-models.py
+- hugging-face-course/transformer-usage.py
+- hugging-face-course/tuning-models.py
+- hugging-face-course/sharing-models-and-tokenizers.py
+- hugging-face-course/datasets.py
+- hugging-face-course/tokenizers.py
+- hugging-face-course/main-nlp.py

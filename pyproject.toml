@@ -18,6 +18,8 @@ scikit-learn = "^1.2.1"
 nltk = "^3.8.1"
 textblob = "^0.17.1"
 spacy-transformers = "^1.2.2"
+transformers = "^4.26.1"
+sentencepiece = "^0.1.97"
 
 
 [tool.poetry.group.dev.dependencies]
