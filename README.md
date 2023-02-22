@@ -25,7 +25,6 @@ The following example is the [hugging face course](https://huggingface.co/course
 - hugging-face-course/transformer-models.py
 - hugging-face-course/transformer-usage.py
 - hugging-face-course/tuning-models.py
-- hugging-face-course/sharing-models-and-tokenizers.py
-- hugging-face-course/datasets.py
+- hugging-face-course/datasets-lib.py
 - hugging-face-course/tokenizers.py
 - hugging-face-course/main-nlp.py
