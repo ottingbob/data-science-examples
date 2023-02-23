@@ -1,9 +1,12 @@
 import html
+import os
 from pathlib import Path
 from zipfile import ZipFile
 
+import pandas as pd
 import requests
-from datasets import load_dataset
+from datasets import Dataset, load_dataset, load_from_disk
+from transformers import AutoTokenizer
 
 
 # Load a remote dataset
@@ -73,7 +76,89 @@ print(drug_dataset["train"][0])
 drug_dataset = drug_dataset.filter(lambda row: row["review_length"] > 30)
 print(drug_dataset.num_rows)
 
+# We can also increase the number of processes by providing a `num_proc`
+# arg to the map methods
+cpus = os.cpu_count()
+
 # Unescape HTML character codes from the reviews
 drug_dataset = drug_dataset.map(
-    lambda row: {"review": html.unescape(row["review"])}, batched=True
+    lambda row: {"review": html.unescape(row["review"])}, batched=True, num_proc=cpus
 )
+
+# In ML an `example` is dfined as the set of features that we feed into a model.
+# These can either be the set of columns in a dataset or multiple features can be
+# extracted from a single example and belong to a single column
+tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+
+
+def tokenize_and_split(examples):
+    # We can deal with mismatched length by making the old columns the same size as
+    # the new ones. We need the `overflow_to_sample_mapping` field returned here.
+    # It will map the new feature index to the one of the sample it originated from.
+    # We can then associate each key in the original dataset with a list of values
+    # of the right size by repeating values of each sample when it generates new features.
+    result = tokenizer(
+        examples["review"],
+        truncation=True,
+        max_length=128,
+        return_overflowing_tokens=True,
+    )
+    # Extract mapping between new and old indices
+    sample_map = result.pop("overflow_to_sample_mapping")
+    for k, v in examples.items():
+        result[k] = [v[i] for i in sample_map]
+    return result
+
+
+# Here our first example in the training set becomes 2 features because it will
+# tokenize to more than the max number of tokens we specified, `128`:
+# result = tokenize_and_split(drug_dataset["train"][0])
+# print([len(inp) for inp in result["input_ids"]])
+# [128, 49]
+
+# We remove columns from the drug dataset to not go over our column length of `1000`
+"""
+tokenized_dataset = drug_dataset.map(
+    tokenize_and_split, batched=True, remove_columns=drug_dataset["train"].column_names
+)
+"""
+# Instead use the updated `tokenize_and_split` method that maps the new features back to
+# the original ones.
+tokenized_dataset = drug_dataset.map(tokenize_and_split, batched=True)
+print(len(tokenized_dataset["train"]), len(drug_dataset["train"]))
+
+# Convert the dataset to a dataframe object:
+drug_dataset.set_format("pandas")
+print(drug_dataset["train"][:3])
+
+# Create a DataFrame for the whole training set
+train_df: pd.DataFrame = drug_dataset["train"][:]
+# Use pandas to compute the class distribution among the `condition` entries:
+frequencies = (
+    train_df["condition"]
+    .value_counts()
+    .to_frame()
+    .reset_index()
+    .rename(columns={"index": "condition", "condition": "frequency"})
+)
+print(frequencies.head())
+
+# Now we can go back to a dataset object:
+freq_dataset = Dataset.from_pandas(frequencies)
+print(freq_dataset)
+
+# Reset the `drug_dataset` from `pandas` to `arrow` for further processing
+drug_dataset.reset_format()
+
+# Split the training set into train and validation splits:
+drug_dataset_clean = drug_dataset["train"].train_test_split(train_size=0.8, seed=42)
+# Default "test" split to "validation"
+drug_dataset_clean["validation"] = drug_dataset_clean.pop("test")
+# Add the "test" set to our `DatasetDict`
+drug_dataset_clean["test"] = drug_dataset["test"]
+print(drug_dataset_clean)
+
+# Save the dataset to disk
+# drug_dataset_clean.save_to_disk("drug-reviews")
+drug_dataset_reloaded = load_from_disk("drug-reviews")
+print(drug_dataset_reloaded)
