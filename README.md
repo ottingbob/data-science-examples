@@ -28,5 +28,6 @@ The following example is the [hugging face course](https://huggingface.co/course
 - hugging-face-course/datasets-lib.py
 - hugging-face-course/datasets-lib-bigdata.py
 - hugging-face-course/datasets-github-issues.py
+- hugging-face-course/datasets-semantic-search.py
 - hugging-face-course/tokenizers.py
 - hugging-face-course/main-nlp.py

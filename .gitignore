@@ -5,10 +5,11 @@
 .env
 
 # Locally saved datasets
+datasets-issues.jsonl
 drug-reviews/
+github-issues-text-embeddings/
 pubmed_dataset/
 hugging-face-course/drugsComTest_raw.tsv
 hugging-face-course/drugsComTrain_raw.tsv
 hugging-face-course/drugsCom_raw.zip
-datasets-issues.jsonl
 
