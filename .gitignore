@@ -6,6 +6,7 @@
 
 # Locally saved datasets
 datasets-issues.jsonl
+code-search-net-tokenizer/
 drug-reviews/
 github-issues-text-embeddings/
 pubmed_dataset/
