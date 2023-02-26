@@ -27,6 +27,7 @@ accelerate = "^0.16.0"
 zstandard = "^0.20.0"
 python-dotenv = "^0.21.1"
 faiss-cpu = "^1.7.3"
+seqeval = "^1.2.2"
 
 
 [tool.poetry.group.dev.dependencies]

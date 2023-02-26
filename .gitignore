@@ -5,6 +5,7 @@
 .env
 
 # Locally saved datasets
+bert-finetuned-ner/
 datasets-issues.jsonl
 code-search-net-tokenizer/
 drug-reviews/
