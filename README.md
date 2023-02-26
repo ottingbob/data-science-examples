@@ -35,3 +35,4 @@ The following example is the [hugging face course](https://huggingface.co/course
 - hugging-face-course/tokenizers-uni.py
 - hugging-face-course/tokenizers-from-scratch.py
 - hugging-face-course/main-nlp-token-classification.py
+- hugging-face-course/main-nlp-masked-language.py
