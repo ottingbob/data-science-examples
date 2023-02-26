@@ -7,11 +7,12 @@
 # Locally saved datasets
 bert-finetuned-ner/
 datasets-issues.jsonl
+distilbert-base-uncased-finetuned-imdb-accelerate/
 code-search-net-tokenizer/
 drug-reviews/
 github-issues-text-embeddings/
 pubmed_dataset/
-hugging-face-course/drugsComTest_raw.tsv
-hugging-face-course/drugsComTrain_raw.tsv
-hugging-face-course/drugsCom_raw.zip
+hugging_face_course/drugsComTest_raw.tsv
+hugging_face_course/drugsComTrain_raw.tsv
+hugging_face_course/drugsCom_raw.zip
 

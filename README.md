@@ -22,17 +22,20 @@ presentation with the corresponding [github](https://github.com/keithgalli/pycon
 - other-tech.py
 
 The following example is the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt)
-- hugging-face-course/transformer-models.py
-- hugging-face-course/transformer-usage.py
-- hugging-face-course/tuning-models.py
-- hugging-face-course/datasets-lib.py
-- hugging-face-course/datasets-lib-bigdata.py
-- hugging-face-course/datasets-github-issues.py
-- hugging-face-course/datasets-semantic-search.py
-- hugging-face-course/tokenizers-quick-example.py
-- hugging-face-course/tokenizers-bpe.py
-- hugging-face-course/tokenizers-wp.py
-- hugging-face-course/tokenizers-uni.py
-- hugging-face-course/tokenizers-from-scratch.py
-- hugging-face-course/main-nlp-token-classification.py
-- hugging-face-course/main-nlp-masked-language.py
+- hugging_face_course/transformer-models.py
+- hugging_face_course/transformer-usage.py
+- hugging_face_course/tuning-models.py
+- hugging_face_course/datasets-lib.py
+- hugging_face_course/datasets-lib-bigdata.py
+- hugging_face_course/datasets-github-issues.py
+- hugging_face_course/datasets-semantic-search.py
+- hugging_face_course/tokenizers-quick-example.py
+- hugging_face_course/tokenizers-bpe.py
+- hugging_face_course/tokenizers-wp.py
+- hugging_face_course/tokenizers-uni.py
+- hugging_face_course/tokenizers-from-scratch.py
+- hugging_face_course/main-nlp-token-classification.py
+- hugging_face_course/main-nlp-masked-language.py
+- hugging_face_course/main-nlp-translation.py
+> The following file provides accelerated models for all the `main-nlp` related examples
+- hugging_face_course/accelerated_models.py

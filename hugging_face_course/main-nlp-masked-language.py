@@ -3,6 +3,9 @@ import math
 
 import numpy as np
 import torch
+
+# TODO: If you want to use this in a script it needs to have the import fixed
+from accelerated_models import AcceleratedDistilBERT
 from datasets import load_dataset
 from transformers import (
     AutoModelForMaskedLM,
@@ -11,6 +14,7 @@ from transformers import (
     Trainer,
     TrainingArguments,
     default_data_collator,
+    logging,
     pipeline,
 )
 
@@ -239,9 +243,13 @@ trainer = Trainer(
 # eval_results = trainer.evaluate()
 # print(f">>> Perplexity: {math.exp(eval_results['eval_loss']):.2f}")
 
+# Supress the hf_logger to get clean output
+logging.get_logger().setLevel(logging.WARNING)
+
 # And now use the fine-tuned model
 # I am not waiting an hour+ for training so using the model from the course instead
 # mask_filler = pipeline("fill-mask", model=f"{model_name}-finetuned-imdb")
+print("Trained accelerated model from the course:")
 mask_filler = pipeline(
     "fill-mask", model="huggingface-course/distilbert-base-uncased-finetuned-imdb"
 )
@@ -249,4 +257,21 @@ preds = mask_filler(text)
 for pred in preds:
     print(f">>> {pred['sequence']}")
 
-# TODO: We can use a custom training loop... IF YOU DARE
+# We can use a custom training loop & this actually speeds it up SIGNIFICANTLY
+# Looks like it will take around 22mins on my boo-boo integrated GPU
+adb = AcceleratedDistilBERT(
+    dataset=downsampled_dataset,
+    data_collator=data_collator,
+    model_checkpoint=model_checkpoint,
+    model_name="distilbert-base-uncased-finetuned-imdb-accelerate",
+    tokenizer=tokenizer,
+)
+# adb.execute()
+
+print("Locally trained accelerated model:")
+mask_filler = pipeline(
+    "fill-mask", model="distilbert-base-uncased-finetuned-imdb-accelerate"
+)
+preds = mask_filler(text)
+for pred in preds:
+    print(f">>> {pred['sequence']}")

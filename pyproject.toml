@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["baw <baw@hogwild.dev>"]
 readme = "README.md"
-packages = [{include = "app/internal"}]
+packages = [{include = "app/internal"}, {include = "hugging_face_course/*.py"}]
 
 [tool.poetry.scripts]
 serve = "app.internal.__main__:serve"
@@ -28,6 +28,7 @@ zstandard = "^0.20.0"
 python-dotenv = "^0.21.1"
 faiss-cpu = "^1.7.3"
 seqeval = "^1.2.2"
+sacrebleu = "^2.3.1"
 
 
 [tool.poetry.group.dev.dependencies]
