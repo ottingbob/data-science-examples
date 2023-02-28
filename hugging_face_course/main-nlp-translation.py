@@ -1,5 +1,6 @@
 import evaluate
 import numpy as np
+from accelerated_models import AcceleratedMarian
 from datasets import load_dataset
 from transformers import (
     AutoModelForSeq2SeqLM,
@@ -7,6 +8,7 @@ from transformers import (
     DataCollatorForSeq2Seq,
     Seq2SeqTrainer,
     Seq2SeqTrainingArguments,
+    pipeline,
 )
 
 # For this example we will fine-tune a Marian model pretrained to translate
@@ -157,4 +159,25 @@ trainer = Seq2SeqTrainer(
 # print(trainer.evaluate(max_length=max_length))
 # trainer.train()
 
-# TODO: Implement a custom training loop...
+# Implement a custom accelerated trainer:
+# Hovering around 5 and 6 hours...
+"""
+accelerated_trainer = AcceleratedMarian(
+    dataset=tokenized_datasets,
+    data_collator=data_collator,
+    tokenizer=tokenizer,
+    model_checkpoint=model_checkpoint,
+)
+accelerated_trainer.execute()
+"""
+
+# For completeness check out what the course comes up with for their
+# trained model:
+model_checkpoint = "huggingface-course/marian-finetuned-kde4-en-to-fr"
+translator = pipeline("translation", model=model_checkpoint)
+print(translator("Default to expanded threads"))
+print(
+    translator(
+        "Unable to import %1 using the OFX importer plugin. This file is not the correct format."
+    )
+)
