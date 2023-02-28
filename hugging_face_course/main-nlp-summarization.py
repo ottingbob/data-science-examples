@@ -2,6 +2,7 @@ import evaluate
 import nltk
 import numpy as np
 import pandas as pd
+from accelerated_models import AcceleratedMT5
 from datasets import DatasetDict, concatenate_datasets, load_dataset
 from transformers import (
     AutoModelForSeq2SeqLM,
@@ -241,6 +242,16 @@ trainer = Seq2SeqTrainer(
 # trainer.train()
 # Now see how the training performed
 # print(trainer.evaluate())
+
+# We can also use our accelerated model:
+am = AcceleratedMT5(
+    datasets=tokenized_datasets,
+    data_collator=data_collator,
+    model_checkpoint=model_checkpoint,
+    tokenizer=tokenizer,
+)
+# Again this does not work on my GPU...
+# am.execute()
 
 # Let's test out how it works:
 hub_model_id = "huggingface-course/mt5-small-finetuned-amazon-en-es"

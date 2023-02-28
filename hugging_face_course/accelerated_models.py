@@ -2,6 +2,7 @@ import math
 from functools import partial
 
 import evaluate
+import nltk
 import numpy as np
 import torch
 from accelerate import Accelerator
@@ -263,6 +264,135 @@ class AcceleratedMarian:
             print(f"epoch {epoch}, BLEU score: {results['score']:.2f}")
 
             # Save and upload
+            accelerator.wait_for_everyone()
+            unwrapped_model = accelerator.unwrap_model(model)
+            unwrapped_model.save_pretrained(output_dir, save_function=accelerator.save)
+            if accelerator.is_main_process:
+                self.tokenizer.save_pretrained(output_dir)
+                # Optionally push to hub...
+
+
+# In this example we need to explicitly generate our summaries during training
+# and define how we compute the ROUGE scores
+class AcceleratedMT5:
+    def __init__(self, datasets, data_collator, model_checkpoint: str, tokenizer):
+        self.datasets = datasets
+        self.datasets.set_format("torch")
+        self.data_collator = data_collator
+        self.model_checkpoint = model_checkpoint
+        self.tokenizer = tokenizer
+
+    def _postprocess(self, preds, labels):
+        preds = [pred.strip() for pred in preds]
+        labels = [label.strip() for label in labels]
+
+        # ROUGE expects a newline after each sentence
+        preds = ["\n".join(nltk.sent_tokenize(pred)) for pred in preds]
+        labels = ["\n".join(nltk.sent_tokenize(label)) for label in labels]
+
+        return preds, labels
+
+    def execute(self):
+        model = AutoModelForSeq2SeqLM.from_pretrained(self.model_checkpoint)
+        batch_size = 8
+        train_dataloader = DataLoader(
+            self.datasets["train"],
+            shuffle=True,
+            collate_fn=self.data_collator,
+            batch_size=batch_size,
+        )
+        eval_dataloader = DataLoader(
+            self.datasets["validation"],
+            collate_fn=self.data_collator,
+            batch_size=batch_size,
+        )
+
+        rouge_score = evaluate.load("rouge")
+        optimizer = AdamW(model.parameters(), lr=2e-5)
+        accelerator = Accelerator()
+        model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
+            model, optimizer, train_dataloader, eval_dataloader
+        )
+
+        num_train_epochs = 10
+        num_update_steps_per_epoch = len(train_dataloader)
+        num_training_steps = num_train_epochs * num_update_steps_per_epoch
+
+        lr_scheduler = get_scheduler(
+            "linear",
+            optimizer=optimizer,
+            num_warmup_steps=0,
+            num_training_steps=num_training_steps,
+        )
+
+        output_dir = "results-mt5-finetuned-amazon-en-es-accelerate"
+        # Training loop:
+        # 1) train model by iterating over all examples in train dataloader
+        # 2) Generate model summaries at end of each epoch by generating the tokens
+        #   and then decoding them into text
+        # 3) Compute the ROUGE scores
+        # 4) Save the checkpoints
+        progress_bar = tqdm(range(num_training_steps))
+        for epoch in range(num_train_epochs):
+            model.train()
+            for step, batch in enumerate(train_dataloader):
+                outputs = model(**batch)
+                loss = outputs.loss
+                accelerator.backward(loss)
+
+                optimizer.step()
+                lr_scheduler.step()
+                optimizer.zero_grad()
+                progress_bar.update(1)
+
+            model.eval()
+            for step, batch in enumerate(eval_dataloader):
+                with torch.no_grad():
+                    generated_tokens = accelerator.unwrap_model(model).generate(
+                        batch["input_ids"],
+                        attention_mask=batch["attention_mask"],
+                    )
+                    generated_tokens = accelerator.pad_across_processes(
+                        generated_tokens, dim=1, pad_index=self.tokenizer.pad_token_id
+                    )
+                    generated_tokens = (
+                        accelerator.gather(generated_tokens).cpu().numpy()
+                    )
+                    if isinstance(generated_tokens, tuple):
+                        generated_tokens = generated_tokens[0]
+
+                    # If we did not pad to max length, we need to pad the labels too
+                    labels = accelerator.pad_across_processes(
+                        batch["labels"], dim=1, pad_index=self.tokenizer.pad_token_id
+                    )
+                    labels = accelerator.gather(labels).cpu().numpy()
+                    # Replace -100 in the labels since we can't decode them
+                    labels = np.where(
+                        labels != -100, labels, self.tokenizer.pad_token_id
+                    )
+
+                    decoded_preds = self.tokenizer.batch_decode(
+                        generated_tokens, skip_special_tokens=True
+                    )
+                    decoded_labels = self.tokenizer.batch_decode(
+                        labels, skip_special_tokens=True
+                    )
+                    decoded_preds, decoded_labels = self._postprocess(
+                        decoded_preds, decoded_labels
+                    )
+
+                    rouge_score.add_batch(
+                        predications=decoded_preds,
+                        references=decoded_labels,
+                    )
+
+            # Compute metrics
+            result = rouge_score.compute()
+            # Extract the score
+            result = {key: round(value * 100, 4) for key, value in result.items()}
+            print(f"Epoch {epoch}: {result}")
+
+            # Save progress
             accelerator.wait_for_everyone()
             unwrapped_model = accelerator.unwrap_model(model)
             unwrapped_model.save_pretrained(output_dir, save_function=accelerator.save)
