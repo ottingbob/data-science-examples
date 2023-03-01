@@ -40,5 +40,13 @@ The following example is the [hugging face course](https://huggingface.co/course
 > In order for this one to work I needed to run the following command due to dependencies with the google/mT5 model checkpoint:
 > `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python python hugging_face_course/main-nlp-summarization.py`
 - hugging_face_course/main-nlp-summarization.py
+- hugging_face_course/main-nlp-casual-language.py
 > The following file provides accelerated models for all the `main-nlp` related examples
 - hugging_face_course/accelerated_models.py
+
+### Resources
+
+Interesting [hacker news article](https://news.ycombinator.com/item?id=34971883) talks about challenges they have with AI in development scenarios. It sounds like it is mostly frustrations due to deployment / infrastructure and rapid prototyping
+> We serve our models with FastAPI, containerize them, and then deploy them to our GKE clusters. Depending on the model, we choose different machines - some require GPUs, most are decent on CPU. We take models up or down based on usage, so we have cold starts unless otherwise specified by customers. We expose access to the model via a POST call through our cloud app. We track inputs and outputs, as we expect that people will become interested in fine tuning models based on their past usage.
+
+For the original "davinci" models (now 3 generations behind if you count Instruct, ChatGPT, and upcoming DV"), OpenAI recommends "Aim for at least ~500 examples" as a starting point for fine-tuning

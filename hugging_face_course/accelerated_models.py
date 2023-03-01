@@ -6,12 +6,14 @@ import nltk
 import numpy as np
 import torch
 from accelerate import Accelerator
+from torch.nn import CrossEntropyLoss
 from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import (
     AutoModelForMaskedLM,
     AutoModelForSeq2SeqLM,
+    GPT2LMHeadModel,
     default_data_collator,
     get_scheduler,
 )
@@ -399,3 +401,172 @@ class AcceleratedMT5:
             if accelerator.is_main_process:
                 self.tokenizer.save_pretrained(output_dir)
                 # Optionally push to hub...
+
+
+# We are interested in autocompletion for data science libraries so we should give
+# more weight to training samples that use more of those libraries.
+# We find identify with keywords such as `plt`, `pd`, `sk`, `fit`, `predict` which
+# are all common import names from the respective libraries
+class AcceleratedGPT2:
+    def __init__(self, dataset, tokenizer):
+        self.dataset = dataset
+        self.tokenizer = tokenizer
+
+    @property
+    def keytoken_ids(self):
+        keytoken_ids = []
+        keywords = ["plt", "pd", "sk", "fit", "predict"]
+        keywords.extend([f" {k}" for k in keywords])
+        # This token should be split into multiple tokens
+        keywords.append("testtest")
+        for kw in keywords:
+            ids = self.tokenizer([kw]).input_ids[0]
+            if len(ids) == 1:
+                keytoken_ids.append(ids[0])
+            else:
+                print(f"Keyword has more than one token: {kw}")
+        return keytoken_ids
+
+    # We define a loss function that aligns the logits and inputs.
+    # The inputs are shifted by one to the right from the labels since
+    # the next token is the label for the current token.
+    # We cutoff the last logit since we don't have a label for the token
+    # that follows the full input sequence.
+    # Now we compute loss per sample and count the occurrences of all keywords
+    # in each sample. Finally calculate the weighted average over all samples
+    # using the occurrences as weights
+    # To not throw away samples that have no keywords we add 1 to the weights
+    def keytoken_weighted_loss(self, inputs, logits, keytoken_ids, alpha=1.0):
+        # Shift so that tokens < n predict n
+        shift_labels = inputs[..., 1:].contiguous()
+        shift_logits = logits[..., 1:].contiguous()
+        # Calculate per-token loss
+        loss_fct = CrossEntropyLoss(reduce=False)
+        loss = loss_fct(
+            shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
+        )
+        # Resize and average loss per sample
+        loss_per_sample = loss.view(shift_logits.size(0), shift_logits.size(1)).mean(
+            axis=1
+        )
+        # Calculate and scale weighting
+        weights = torch.stack([(inputs == kt).float() for kt in keytoken_ids]).sum(
+            axis=[0, 2]
+        )
+        weights = alpha * (1.0 + weights)
+        # Calculate weighted average
+        weighted_loss = (loss_per_sample * weights).mean()
+        return weighted_loss
+
+    # To use the loss function we need to prepare the following:
+    # 1) Dataloaders load the data in batches
+    # 2) Set up weight decay params
+    # 3) Evaluate with a function
+    def get_grouped_params(self, model, no_decay=["bias", "LayerNorm.weight"]):
+        weight_decay = 0.1
+        params_with_wd, params_without_wd = [], []
+        for n, p in model.named_parameters():
+            # Skip the weight decay on no_decay params
+            if any(nd in n for nd in no_decay):
+                params_without_wd.append(p)
+            else:
+                params_with_wd.append(p)
+        return [
+            {"params": params_with_wd, "weight_decay": weight_decay},
+            {"params": params_without_wd, "weight_decay": 0.0},
+        ]
+
+    # With this function we can report perplexity and loss at
+    # regular intervals
+    def evaluate(self, model, eval_dataloader, accelerator):
+        model.eval()
+        losses = []
+        for step, batch in enumerate(eval_dataloader):
+            with torch.no_grad():
+                outputs = model(batch["input_ids"], labels=batch["input_ids"])
+
+            losses.append(accelerator.gather(outputs.loss))
+        loss = torch.mean(torch.cat(losses))
+        try:
+            perplexity = torch.exp(loss)
+        except OverflowError:
+            perplexity = float("inf")
+        return loss.item(), perplexity.item()
+
+    def execute(self, config):
+        self.dataset.set_format("torch")
+        batch_size = 32
+        train_dataloader = DataLoader(
+            self.dataset["train"], batch_size=batch_size, shuffle=True
+        )
+        eval_dataloader = DataLoader(self.dataset["valid"], batch_size=batch_size)
+
+        model = GPT2LMHeadModel(config)
+        optimizer = AdamW(self.get_grouped_params(model), lr=5e-4)
+        # accelerator = Accelerator(fp16=True)
+        accelerator = Accelerator()
+
+        model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
+            model, optimizer, train_dataloader, eval_dataloader
+        )
+
+        num_train_epochs = 1
+        num_update_steps_per_epoch = len(train_dataloader)
+        num_training_steps = num_train_epochs * num_update_steps_per_epoch
+
+        lr_scheduler = get_scheduler(
+            name="linear",
+            optimizer=optimizer,
+            num_warmup_steps=1_000,
+            num_training_steps=num_training_steps,
+        )
+
+        # Quick test to see if evaluation works properly
+        self.evaluate(model, eval_dataloader, accelerator)
+
+        output_dir = "codeparrot-ds-accelerate"
+        gradient_accumulation_steps = 8
+        eval_steps = 5_000
+        model.train()
+        completed_steps = 0
+        for epoch in range(num_train_epochs):
+            for step, batch in tqdm(
+                enumerate(train_dataloader, start=1), total=num_training_steps
+            ):
+                logits = model(batch["input_ids"]).logits
+                loss = self.keytoken_weighted_loss(
+                    batch["input_ids"], logits, self.keytoken_ids
+                )
+                if step % 100 == 0:
+                    accelerator.print(
+                        {
+                            "lr": lr_scheduler.get_lr(),
+                            "samples": step * len(batch),
+                            "steps": completed_steps,
+                            "loss/train": loss.item() * gradient_accumulation_steps,
+                        }
+                    )
+                loss = loss / gradient_accumulation_steps
+                accelerator.backward(loss)
+                if step % gradient_accumulation_steps == 0:
+                    accelerator.clip_grad_norm_(model.parameters(), 1.0)
+                    optimizer.step()
+                    lr_scheduler.step()
+                    optimizer.zero_grad()
+                    completed_steps += 1
+                if (step % (eval_steps * gradient_accumulation_steps)) == 0:
+                    eval_loss, perplexity = self.evaluate(
+                        model, eval_dataloader, accelerator
+                    )
+                    accelerator.print(
+                        {"loss/eval": eval_loss, "perplexity": perplexity}
+                    )
+                    model.train()
+                    accelerator.wait_for_everyone()
+                    unwrapped_model = accelerator.unwrap_model(model)
+                    unwrapped_model.save_pretrained(
+                        output_dir, save_function=accelerator.save
+                    )
+                    if accelerator.is_main_process:
+                        self.tokenizer.save_pretrained(output_dir)
+                        # Optionally push to hub...
