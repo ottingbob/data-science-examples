@@ -1,3 +1,4 @@
+import collections
 import math
 from functools import partial
 
@@ -12,6 +13,7 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 from transformers import (
     AutoModelForMaskedLM,
+    AutoModelForQuestionAnswering,
     AutoModelForSeq2SeqLM,
     GPT2LMHeadModel,
     default_data_collator,
@@ -570,3 +572,172 @@ class AcceleratedGPT2:
                     if accelerator.is_main_process:
                         self.tokenizer.save_pretrained(output_dir)
                         # Optionally push to hub...
+
+
+class AcceleratedBertSquad:
+    def __init__(
+        self,
+        dataset,
+        train_dataset,
+        raw_validation_dataset,
+        tokenizer,
+        model_checkpoint: str = "bert-base-cased",
+    ):
+        self.dataset = dataset
+        self.train_dataset = train_dataset
+        self.raw_validation_dataset = raw_validation_dataset
+        self.model_checkpoint = model_checkpoint
+        self.tokenizer = tokenizer
+        self.metric = evaluate.load("squad")
+
+    def compute_metrics(self, start_logits, end_logits, features, examples):
+        n_best = 20
+        example_to_features = collections.defaultdict(list)
+        for idx, feature in enumerate(features):
+            example_to_features[feature["example_id"]].append(idx)
+
+        predicted_answers = []
+        for example in tqdm(examples):
+            example_id = example["id"]
+            context = example["context"]
+            answers = []
+
+            # Loop through all features associated with that example
+            for feature_index in example_to_features[example_id]:
+                start_logit = start_logits[feature_index]
+                end_logit = end_logits[feature_index]
+                offsets = features[feature_index]["offset_mapping"]
+
+                start_indexes = np.argsort(start_logit)[-n_best:].tolist()
+                end_indexes = np.argsort(end_logit)[-n_best:].tolist()
+                for start_index in start_indexes:
+                    for end_index in end_indexes:
+                        # Skip answers that are not fully in the context
+                        # if offsets[start_index] is None or offsets[end_index] is None:
+                        if any(
+                            e is None
+                            for e in (offsets[start_index], offsets[end_index])
+                        ):
+                            continue
+                        # Skip answers with a length that is either < 0 or > max_answer_length
+                        if (
+                            end_index < start_index
+                            or end_index - start_index + 1 > max_answer_length
+                        ):
+                            continue
+
+                        answer = {
+                            "text": context[
+                                offsets[start_index][0] : offsets[end_index][1]
+                            ],
+                            "logit_score": start_logit[start_index]
+                            + end_logit[end_index],
+                        }
+                        answers.append(answer)
+
+            if len(answers) > 0:
+                best_answer = max(answers, key=lambda x: x["logit_score"])
+                predicted_answers.append(
+                    {"id": example_id, "prediction_text": best_answer["text"]}
+                )
+            else:
+                predicted_answers.append({"id": example_id, "prediction_text": ""})
+
+        theoretical_answers = [
+            {"id": ex["id"], "answers": ex["answers"]} for ex in examples
+        ]
+        return self.metric.compute(
+            predictions=predicted_answers, references=theoretical_answers
+        )
+
+    def execute(self):
+        self.dataset.set_format("torch")
+        try:
+            validation_set = self.dataset["validation"].remove_columns(
+                ["example_id", "offset_mapping"]
+            )
+        except ValueError:
+            print("Columns already removed from validation dataset")
+            validation_set = self.dataset["validation"]
+
+        batch_size = 8
+        train_dataloader = DataLoader(
+            self.train_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            collate_fn=default_data_collator,
+        )
+        eval_dataloader = DataLoader(
+            validation_set,
+            batch_size=batch_size,
+            collate_fn=default_data_collator,
+        )
+
+        model = AutoModelForQuestionAnswering.from_pretrained(self.model_checkpoint)
+        optimizer = AdamW(model.parameters(), lr=2e-5)
+        # accelerator = Accelerator(fp16=True)
+        accelerator = Accelerator()
+
+        model, optimizer, train_dataloader, eval_dataloader = accelerator.prepare(
+            model, optimizer, train_dataloader, eval_dataloader
+        )
+
+        num_train_epochs = 3
+        num_update_steps_per_epoch = len(train_dataloader)
+        num_training_steps = num_train_epochs * num_update_steps_per_epoch
+
+        lr_scheduler = get_scheduler(
+            name="linear",
+            optimizer=optimizer,
+            num_warmup_steps=0,
+            num_training_steps=num_training_steps,
+        )
+
+        output_dir = "bert-finetuned-squad-accelerate"
+        progress_bar = tqdm(range(num_training_steps))
+        for epoch in range(num_train_epochs):
+            # Training
+            model.train()
+            for step, batch in enumerate(train_dataloader):
+                outputs = model(**batch)
+                loss = outputs.loss
+                accelerator.backward(loss)
+
+                optimizer.step()
+                lr_scheduler.step()
+                optimizer.zero_grad()
+                progress_bar.update(1)
+
+            # Evaluation
+            model.eval()
+            start_logits = []
+            end_logits = []
+            accelerator.print("Evaluation!")
+            for batch in tqdm(eval_dataloader):
+                with torch.no_grad():
+                    outputs = model(**batch)
+
+                start_logits.append(
+                    accelerator.gather(outputs.start_logits).cpu().numpy()
+                )
+                end_logits.append(accelerator.gather(outputs.end_logits).cpu().numpy())
+
+            start_logits = np.concatenate(start_logits)[
+                : len(self.dataset["validation"])
+            ]
+            end_logits = np.concatenate(end_logits)[: len(self.dataset["validation"])]
+            metrics = self.compute_metrics(
+                start_logits,
+                end_logits,
+                self.dataset["validation"],
+                self.raw_validation_dataset,
+            )
+            print(f"Epoch {epoch}: {metrics}")
+
+            # Save and upload
+            accelerator.wait_for_everyone()
+            unwrapped_model = accelerator.unwrap_model(model)
+            unwrapped_model.save_pretrained(output_dir, save_function=accelerator.save)
+            if accelerator.is_main_process:
+                self.tokenizer.save_pretrained(output_dir)
+                # Optionally push to hub...

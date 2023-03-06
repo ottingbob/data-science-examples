@@ -41,6 +41,7 @@ The following example is the [hugging face course](https://huggingface.co/course
 > `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python python hugging_face_course/main-nlp-summarization.py`
 - hugging_face_course/main-nlp-summarization.py
 - hugging_face_course/main-nlp-casual-language.py
+- hugging_face_course/main-nlp-question-answering.py
 > The following file provides accelerated models for all the `main-nlp` related examples
 - hugging_face_course/accelerated_models.py
 
