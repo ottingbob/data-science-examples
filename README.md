@@ -45,6 +45,7 @@ The following example is the [hugging face course](https://huggingface.co/course
 > The following file provides accelerated models for all the `main-nlp` related examples
 - hugging_face_course/accelerated_models.py
 - hugging_face_course/demo-number-one.py
+- hugging_face_course/gradio-interface-class.py
 
 ### Resources
 
