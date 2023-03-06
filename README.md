@@ -46,6 +46,7 @@ The following example is the [hugging face course](https://huggingface.co/course
 - hugging_face_course/accelerated_models.py
 - hugging_face_course/demo-number-one.py
 - hugging_face_course/gradio-interface-class.py
+- hugging_face_course/gradio-share-demos.py
 
 ### Resources
 
