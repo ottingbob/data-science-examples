@@ -4,6 +4,9 @@
 # Environment files
 .env
 
+# Gradio log files
+flagged/
+
 # Locally saved datasets
 bert-finetuned-ner/
 datasets-issues.jsonl

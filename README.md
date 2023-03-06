@@ -44,6 +44,7 @@ The following example is the [hugging face course](https://huggingface.co/course
 - hugging_face_course/main-nlp-question-answering.py
 > The following file provides accelerated models for all the `main-nlp` related examples
 - hugging_face_course/accelerated_models.py
+- hugging_face_course/demo-number-one.py
 
 ### Resources
 
