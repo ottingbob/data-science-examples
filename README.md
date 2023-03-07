@@ -5,7 +5,11 @@ or videos that I have used for learning.
 
 Mileage may vary
 
-#### Explainations
+#### Explanations
+
+The following directory has examples for learning financial analysis based on [this Udemy course](https://www.udemy.com/course/the-complete-financial-analyst-course)
+The course is meant to work in excel but I have other plans...
+- financial-analyst-course-2023/
 
 - self-attention.py
 > Creates an attention model by just using standard matrix multiplication / operations

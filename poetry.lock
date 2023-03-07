@@ -1994,6 +1994,21 @@ files = [
 ]
 
 [[package]]
+name = "numpy-financial"
+version = "1.0.0"
+description = "Simple financial functions"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "numpy-financial-1.0.0.tar.gz", hash = "sha256:f84341bc62b2485d5604a73d5fac7e91975b4b9cd5f4a5a9cf608902ea00cb40"},
+    {file = "numpy_financial-1.0.0-py3-none-any.whl", hash = "sha256:bae534b357516f12258862d1f0181d911032d0467f215bfcd1c264b4da579047"},
+]
+
+[package.dependencies]
+numpy = ">=1.15"
+
+[[package]]
 name = "nvidia-cublas-cu11"
 version = "11.10.3.66"
 description = "CUBLAS native runtime libraries"
@@ -2345,6 +2360,35 @@ files = [
 [package.extras]
 dev = ["pre-commit", "tox"]
 testing = ["pytest", "pytest-benchmark"]
+
+[[package]]
+name = "polars"
+version = "0.16.11"
+description = "Blazingly fast DataFrame library"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "polars-0.16.11-cp37-abi3-macosx_10_7_x86_64.whl", hash = "sha256:634e00ff64135760d03d1595a91b05cab1bfc9837086898ec6115bef37424d99"},
+    {file = "polars-0.16.11-cp37-abi3-macosx_11_0_arm64.whl", hash = "sha256:820d28fa97d167fff6237988cb7770e487e7dd194e67d997d79be03004e3ba63"},
+    {file = "polars-0.16.11-cp37-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4a577d81ae4d1d003a4cef5550f9293cf9ab1ba6175b8f670ba02df20191158f"},
+    {file = "polars-0.16.11-cp37-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:868c7ba6ab1567d056fef8f57a1ca0dc87e16c497b0a496288ee5ea122643d29"},
+    {file = "polars-0.16.11-cp37-abi3-win_amd64.whl", hash = "sha256:f911b9e7fbb3eea006945026afde8ee06f15a215ee80d20315c03c9ed5cf5f96"},
+    {file = "polars-0.16.11.tar.gz", hash = "sha256:b4fbb433bba168a5aa21f7c5eaab4f3ec06080ff769c494159b254bed382add2"},
+]
+
+[package.extras]
+all = ["polars[connectorx,deltalake,fsspec,matplotlib,numpy,pandas,pyarrow,sqlalchemy,timezone,xlsx2csv]"]
+connectorx = ["connectorx"]
+deltalake = ["deltalake (>=0.6.2)"]
+fsspec = ["fsspec"]
+matplotlib = ["matplotlib"]
+numpy = ["numpy (>=1.16.0)"]
+pandas = ["pandas", "pyarrow (>=4.0.0)"]
+pyarrow = ["pyarrow (>=4.0.0)"]
+sqlalchemy = ["pandas", "sqlalchemy"]
+timezone = ["backports.zoneinfo", "tzdata"]
+xlsx2csv = ["xlsx2csv (>=0.8.0)"]
 
 [[package]]
 name = "portalocker"
@@ -4616,4 +4660,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "57082ed056a0f38ad0bc988d23f525a3cc28373b5b568cc14fd12969ef02802b"
+content-hash = "7d2b96ed9c668bfea68a4f4ebb48654a0c183f7cca5f92b7be43a111dac52458"

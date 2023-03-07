@@ -32,6 +32,8 @@ sacrebleu = "^2.3.1"
 rouge-score = "^0.1.2"
 protobuf = "^4.22.0"
 gradio = "^3.20.0"
+polars = "^0.16.11"
+numpy-financial = "^1.0.0"
 
 
 [tool.poetry.group.dev.dependencies]
