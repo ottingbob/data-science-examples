@@ -68,34 +68,64 @@ print(unique_codes.shape[0])
 fy_16_17_18.drop_in_place("Amounts")
 fy_16_17_18 = fy_16_17_18.unique(subset=["Code"])
 
+# Here is an example of a code with more than 1 record
+print(fy_2017.filter(pl.col("Code") == "2042000000111101").select("Amounts"))
+print(fy_2018.filter(pl.col("Code") == "2042000000111101").select("Amounts"))
+
 
 def get_year_amounts(
     summary_df: pl.DataFrame, join_df: pl.DataFrame, year_col_name: str
 ) -> pl.DataFrame:
-    join_df_unique = join_df.unique(subset=["Code"])
-    return summary_df.with_columns(
+    # To perform an equivalent of a `SUMIF` we do this in 2 operations...
+    # Get the Code / year_col_name aggregation over `Amounts` in 1 frame:
+    agg_df = (
         summary_df.with_columns(summary_df["Code"])
-        .join(join_df_unique, on="Code", how="outer")
-        .with_columns(pl.all().fill_null(0))
-        .select("Amounts")
-        .apply(lambda a: a[0] * -1)
-        .rename({"apply": year_col_name})
-        # .alias(year_col_name)
-        # .rename({"Amounts": year_col_name})
+        .join(join_df, on="Code", how="left")
+        .with_columns(pl.col("Amounts").fill_null(0))
+        .groupby("Code")
+        .agg(pl.col("Amounts").sum())
+        .rename({"Amounts": year_col_name})
     )
+
+    # Now concatenate the results in the original summary frame:
+    return summary_df.with_columns(pl.all()).join(agg_df, on="Code", how="left")
 
 
 fy_16_17_18 = get_year_amounts(fy_16_17_18, fy_2016, "FY16")
 fy_16_17_18 = get_year_amounts(fy_16_17_18, fy_2017, "FY17")
 fy_16_17_18 = get_year_amounts(fy_16_17_18, fy_2018, "FY18")
 pl.Config.set_tbl_rows(fy_16_17_18.shape[0])
-print(fy_16_17_18)
+print(fy_16_17_18.sort("Code"))
+
+
+"""
+# UPDATE: This has been fixed!!! The issue was not applying an aggregation over the
+# columns that have more than 2 results for a given code.
+#
+# Leaving this example below here since the `pl.coalesce` feature is kinda nifty
+# for doing a row update in place
+#
+# This is a hack to fix the numbers manually...
+fy_fix_data = pl.DataFrame(
+    {"Code": "2042000000111101", "FY17": -2057298.04, "FY18": -1709688.643}
+)
+fy_fix = (
+    fy_16_17_18.join(fy_fix_data, on="Code", how="left")
+    .with_columns(
+        [
+            pl.coalesce([pl.col("FY17_right"), pl.col("FY17")]).alias("FY17"),
+            pl.coalesce([pl.col("FY18_right"), pl.col("FY18")]).alias("FY18"),
+        ]
+    )
+    .drop("FY17_right", "FY18_right")
+)
+print("UPDATED DF:\n", fy_fix)
+fy_16_17_18 = fy_fix
+"""
 
 # Verify our joins were correct by ensuring the value `Net income/(loss)` for
 # `P&L Account` is equal to the difference of the sum of all other amounts for a given
 # fiscal year
-# FIXME: The numbers don't add up =(
-#   I think this could be related to the `join_df_unique` on the FY17 & FY18 columns
 no_net_income_loss = fy_16_17_18.filter(pl.col("P&L account") != "Net income/(loss)")
 fy_sums = no_net_income_loss.select(
     [pl.col("FY16"), pl.col("FY17"), pl.col("FY18")]
@@ -105,3 +135,6 @@ net_income_loss = fy_16_17_18.filter(
     pl.col("P&L account") == "Net income/(loss)"
 ).select([pl.col("FY16"), pl.col("FY17"), pl.col("FY18")])
 print(net_income_loss)
+
+for col in ["FY16", "FY17", "FY18"]:
+    print(f"{col} sum - net income:", fy_sums[col].sum() - net_income_loss[col].sum())
