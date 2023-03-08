@@ -138,3 +138,95 @@ print(net_income_loss)
 
 for col in ["FY16", "FY17", "FY18"]:
     print(f"{col} sum - net income:", fy_sums[col].sum() - net_income_loss[col].sum())
+
+# Associate `mappings` or categories to our related `P&L account` entries
+# So in the lecture they recommend the following ones but in the example these do not match
+# up...
+"""
+mapping = {
+    "Revenue": [],
+    "Cost of goods sold": [],
+    "Operating expenses": [],
+    "D&A": [],
+    "Interest expenses": [],
+    "Extraordinary items": [],
+    "Taxes": [],
+}
+"""
+# SO instead rolling with the mappings from the example:
+mapping_categories = {
+    # Not sure why these 5 were in the example sheet as well...
+    "EBITDA": [],
+    "EBIT": [],
+    "EBT": [],
+    "Gross margin": [],
+    "Total revenues": [],
+    "Net Sales": ["Core business revenues"],
+    "Other revenues": ["Other revenues"],
+    "Recharges": ["Corporate recharges"],
+    "Direct costs": ["Direct costs"],
+    "Other operating expenses": [
+        "Freight outbound expenses",
+        "R&D expenses",
+        "Marketing expenses",
+        "Software&IT",
+        "Charges and contributions",
+        "Insurance expenses",
+        "Utility expenses",
+        "Legal expenses",
+        "Misc costs",
+        "Consulting fees",
+        "Misc extraordinary expenses",
+        "Utility charges",
+        "Concession fees other",
+        "Travel expenses",
+        "Other operative currency differences",
+        "Property tax",
+        "Operating expenses for utilities",
+        "Reimbursements+compensation for damages",
+        "Repairs/Maintenance costs",
+    ],
+    "Personnel expenses": [
+        "Wages and salaries",
+        "Pension contributions",
+        "Severance indemnity contribution",
+        "Other personnel expenses",
+    ],
+    "Leasing": ["Leasings"],
+    "Services": ["Service expenses"],
+    "Travel costs": ["Travel expenses"],
+    "Other income": ["Other income"],
+    "Capitalized costs": ["Capitalized costs", "Capitalized interest"],
+    "D&A": ["D&A"],
+    "Extraordinary items": [
+        "Non-recurring costs",
+        "Gains from disposal of PP&E",
+        "Losses fr disposal of PPE",
+        "Misc extraordinary expenses",
+        "Impairment of participation",
+    ],
+    "Financial items": ["Interest income", "Interest expenses"],
+    "Taxes": ["Current taxes", "Regional taxes", "Deferred taxes"],
+    "Net Income": ["Net income/(loss)"],
+}
+
+"""
+.map(
+    lambda a: category if a in category_values else ""
+    for category, category_values in mapping_categories.items()
+)
+"""
+
+
+def apply_mapping(*args):
+    account = args[0]
+    for category, category_values in mapping_categories.items():
+        if account in category_values:
+            return category
+    return ""
+
+
+fy_16_17_18 = fy_16_17_18.with_columns(
+    pl.col("P&L account").apply(lambda a: apply_mapping(a)).alias("Mapping")
+)
+print(fy_16_17_18)
