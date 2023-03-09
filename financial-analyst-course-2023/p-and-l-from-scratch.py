@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import List
 
 import pandas as pd
 import polars as pl
@@ -179,7 +180,7 @@ mapping_categories = {
         "Misc extraordinary expenses",
         "Utility charges",
         "Concession fees other",
-        "Travel expenses",
+        # "Travel expenses",
         "Other operative currency differences",
         "Property tax",
         "Operating expenses for utilities",
@@ -210,13 +211,6 @@ mapping_categories = {
     "Net Income": ["Net income/(loss)"],
 }
 
-"""
-.map(
-    lambda a: category if a in category_values else ""
-    for category, category_values in mapping_categories.items()
-)
-"""
-
 
 def apply_mapping(*args):
     account = args[0]
@@ -230,3 +224,158 @@ fy_16_17_18 = fy_16_17_18.with_columns(
     pl.col("P&L account").apply(lambda a: apply_mapping(a)).alias("Mapping")
 )
 print(fy_16_17_18)
+
+# Now organize the P&L by putting the mapping categories in the correct order
+pl_categories = [
+    # Revenues on top
+    "Net Sales",
+    "Other revenues",
+    "Recharges",
+    # The sum of these will give us:
+    "Total revenues",
+    # Next is costs
+    "Direct costs",
+    # Difference between total revenues and direct costs are:
+    "Gross margin",
+    # Operating expenses:
+    "Other operating expenses",
+    "Personnel expenses",
+    "Leasing",
+    "Services",
+    "Travel costs",
+    "Other income",
+    "Capitalized costs",
+    # Earnings before interests, taxes, depreciation, and amoritization:
+    "EBITDA",
+    # Depreciation & Amoritization:
+    "D&A",
+    # Earnings before interests and taxes:
+    "EBIT",
+    # Next items:
+    "Financial items",
+    "Extraordinary items",
+    # Earnings before taxes:
+    "EBT",
+    # Finally taxes:
+    "Taxes",
+    # Final result:
+    "Net Income",
+]
+
+# Now we need to populate the P&L for FY16 / 17 / 18
+pl_headers = ["EUR in millions", "FY16", "FY17", "FY18"]
+pl_df = pl.DataFrame({k: pl_categories for k in pl_headers})
+print(pl_df)
+
+
+def compute_aggregate_pl_col(
+    year_pl_values: pl.DataFrame,
+    sum_cols: List[str],
+    year_col: str,
+    agg_col: str,
+) -> pl.DataFrame:
+    year_total_revenue = (
+        year_pl_values.filter(pl.col("Mapping").is_in(sum_cols))
+        .select(pl.col(year_col).sum().alias(agg_col))
+        .to_dict()
+        .get(agg_col, [0])[0]
+    )
+    return pl.concat(
+        [
+            year_pl_values,
+            pl.DataFrame({"Mapping": agg_col, year_col: year_total_revenue}),
+        ]
+    )
+
+
+def compute_yearly_pl_values(year_col: str) -> pl.DataFrame:
+    fy_pl_values = (
+        fy_16_17_18.filter(pl.col("Mapping").is_in(pl_categories))
+        .select(year_col, "Mapping")
+        .groupby("Mapping")
+        .agg(pl.col(year_col).sum())
+        # We are in millions and need to flip the sign
+        .with_columns(pl.col(year_col).apply(lambda a: (a * -1) / 1_000_000))
+    )
+
+    # Compute `Total Revenues`, `Gross Margin`, `EBITDA`,
+    # `EBIT` and `EBT`
+    fy_pl_values = compute_aggregate_pl_col(
+        fy_pl_values,
+        ["Net Sales", "Other revenues", "Recharges"],
+        year_col,
+        "Total revenues",
+    )
+    fy_pl_values = compute_aggregate_pl_col(
+        fy_pl_values,
+        ["Total revenues", "Direct costs"],
+        year_col,
+        "Gross margin",
+    )
+    fy_pl_values = compute_aggregate_pl_col(
+        fy_pl_values,
+        [
+            "Gross margin",
+            "Other operating expenses",
+            "Personnel expenses",
+            "Leasing",
+            "Services",
+            "Travel costs",
+            "Other income",
+            "Capitalized costs",
+        ],
+        year_col,
+        "EBITDA",
+    )
+    fy_pl_values = compute_aggregate_pl_col(
+        fy_pl_values,
+        ["EBITDA", "D&A"],
+        year_col,
+        "EBIT",
+    )
+    fy_pl_values = compute_aggregate_pl_col(
+        fy_pl_values,
+        ["EBIT", "Financial items", "Extraordinary items"],
+        year_col,
+        "EBT",
+    )
+    return fy_pl_values
+
+
+fy16_pl_values = compute_yearly_pl_values("FY16")
+fy17_pl_values = compute_yearly_pl_values("FY17")
+fy18_pl_values = compute_yearly_pl_values("FY18")
+
+# Join all the values to make the final P&L
+pl_df = (
+    pl_df.with_columns(
+        [pl.col("EUR in millions"), pl.col("FY16"), pl.col("FY17"), pl.col("FY18")]
+    )
+    .join(
+        fy16_pl_values,
+        left_on="EUR in millions",
+        right_on="Mapping",
+        how="left",
+    )
+    .join(
+        fy17_pl_values,
+        left_on="EUR in millions",
+        right_on="Mapping",
+        how="left",
+    )
+    .join(
+        fy18_pl_values,
+        left_on="EUR in millions",
+        right_on="Mapping",
+        how="left",
+    )
+    .with_columns(
+        [
+            pl.coalesce([pl.col("FY16_right"), pl.col("FY16")]).alias("FY16"),
+            pl.coalesce([pl.col("FY17_right"), pl.col("FY17")]).alias("FY17"),
+            pl.coalesce([pl.col("FY18_right"), pl.col("FY18")]).alias("FY18"),
+        ]
+    )
+    .drop(["FY16_right", "FY17_right", "FY18_right"])
+)
+print(pl_df)
