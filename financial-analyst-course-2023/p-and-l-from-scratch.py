@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List
 
 import pandas as pd
 import polars as pl
@@ -377,5 +377,101 @@ pl_df = (
         ]
     )
     .drop(["FY16_right", "FY17_right", "FY18_right"])
+)
+print(pl_df)
+
+
+def apply_fy_percent_var(*args):
+    args = args[0]
+    return f"{((float(args[1]) / float(args[0])) - 1) * 100:.2f}%"
+
+
+# Now calculate percentage variation between FY16-FY17 & FY17-FY18
+pl_df = pl_df.with_columns(
+    pl_df.select([pl.col("FY16"), pl.col("FY17")])
+    .apply(lambda a: apply_fy_percent_var(a))
+    .rename({"apply": "Var% FY16-FY17"})
+).with_columns(
+    pl_df.select([pl.col("FY17"), pl.col("FY18")])
+    .apply(lambda a: apply_fy_percent_var(a))
+    .rename({"apply": "Var% FY17-FY18"})
+)
+print(pl_df)
+
+
+# Calculate KPIs such as GM% EBITDA% and EBIT%
+# GM% = GM / Total Revenues
+# EBITDA% = EBITDA / Total Revenues
+# EBIT% = EBIT / Total Revenues
+def apply_gross_margin_percent(*args):
+    print(args)
+    print(type(args[0][0]))
+    # return ("Gross Margin %", 0, 0, 0)
+    return args[0]
+
+
+d: List[Dict[str, Any]] = (
+    pl_df.filter(
+        pl.any(pl.col("*").is_in(["Gross margin", "Total revenues", "EBITDA", "EBIT"]))
+    )
+    # Using a struct the row gets passed to the apply function as a dict
+    # .select(
+    #   pl.struct(["EUR in millions", "FY16", "FY17", "FY18"])
+    # )
+    # .apply(apply_gross_margin_percent)
+    .select(
+        pl.col("EUR in millions"),
+        pl.col("FY16"),
+        pl.col("FY17"),
+        pl.col("FY18")
+        # pl.struct(["EUR in millions", "FY16", "FY17", "FY18"])
+    ).to_dicts()
+)
+
+# TODO: Get rekt on dict comprehension:
+# total_revenues = row if "Total revenues" in row.values() else {} for row in d
+# total_revenues =  for row in d row if "Total revenues" in row.values() else {}
+# total_revenues = {row.items() for row in d if "Total revenues" in list(row.values())}
+for row in d:
+    if "Total revenues" in row.values():
+        total_revenues = row
+    elif "Gross margin" in row.values():
+        gross_margins = row
+    elif "EBITDA" in row.values():
+        ebitda = row
+    elif "EBIT" in row.values():
+        ebit = row
+
+
+def calc_percentage(kpi: str, tr: str) -> str:
+    return f"{(float(kpi) / float(tr)) * 100:.2f}%"
+
+
+def calculate_percentage_kpi(
+    kpi_name: str, kpi_row: Dict[str, str], total_revenues: Dict[str, str]
+):
+    return {
+        "EUR in millions": kpi_name,
+        "FY16": calc_percentage(kpi_row["FY16"], total_revenues["FY16"]),
+        "FY17": calc_percentage(kpi_row["FY17"], total_revenues["FY17"]),
+        "FY18": calc_percentage(kpi_row["FY18"], total_revenues["FY18"]),
+        "Var% FY16-FY17": "",
+        "Var% FY17-FY18": "",
+    }
+
+
+gm_dict = calculate_percentage_kpi("Gross margin %", gross_margins, total_revenues)
+ebitda_dict = calculate_percentage_kpi("EBITDA %", ebitda, total_revenues)
+ebit_dict = calculate_percentage_kpi("EBIT %", ebit, total_revenues)
+kpi_row = {k: "" for k in pl_df.columns}
+kpi_row["EUR in millions"] = "KPIs"
+pl_df = pl.concat(
+    [
+        pl_df,
+        pl.DataFrame(kpi_row),
+        pl.DataFrame(gm_dict),
+        pl.DataFrame(ebitda_dict),
+        pl.DataFrame(ebit_dict),
+    ]
 )
 print(pl_df)
