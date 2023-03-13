@@ -131,7 +131,7 @@ def return_histogram(data: pd.DataFrame):
     plt.title("Annualized daily log returns Histogram")
 
 
-# plot q-q chart of annualized daily log returns
+# plot quantile-quantile chart of annualized daily log returns
 def return_qq_chart(data: pd.DataFrame):
     plt.figure("QQ Chart", figsize=(9, 5))
     sm.qqplot(data["returns"], line="s")
@@ -182,11 +182,12 @@ def rolling_statistics(data: pd.DataFrame):
     plt.axhline(co.mean(), color="r", ls="dashed", lw=1.5)
 
 
-gbm = simulate_gbm()
-print_statistics(gbm)
-quotes_returns(gbm)
-return_histogram(gbm)
-return_qq_chart(gbm)
-realized_volatility(gbm)
-rolling_statistics(gbm)
-plt.show()
+if __name__ == "__main__":
+    gbm = simulate_gbm()
+    print_statistics(gbm)
+    quotes_returns(gbm)
+    return_histogram(gbm)
+    return_qq_chart(gbm)
+    realized_volatility(gbm)
+    rolling_statistics(gbm)
+    plt.show()

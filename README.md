@@ -54,8 +54,14 @@ The following example is the [hugging face course](https://huggingface.co/course
 - hugging_face_course/gradio-hf-hub-integration.py
 - hugging_face_course/gradio-interface-advanced.py
 - hugging_face_course/gradio-chat-example.py
+
 The following examples come from the derivatives analytics with Python book
-- derivatives-with-python/
+> This part deals with the market and generalizations / methods to use
+- derivatives-with-python/part1
+> Part 2 works with theoretical valuation
+- derivatives-with-python/part2
+> Part 3 dives into market based valuations
+- derivatives-with-python/part3
 
 ### Resources
 
