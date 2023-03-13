@@ -54,6 +54,8 @@ The following example is the [hugging face course](https://huggingface.co/course
 - hugging_face_course/gradio-hf-hub-integration.py
 - hugging_face_course/gradio-interface-advanced.py
 - hugging_face_course/gradio-chat-example.py
+The following examples come from the derivatives analytics with Python book
+- derivatives-with-python/
 
 ### Resources
 
