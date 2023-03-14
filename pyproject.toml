@@ -38,6 +38,7 @@ openpyxl = "^3.1.1"
 statsmodels = "^0.13.5"
 yfinance = "^0.2.12"
 tables = "^3.8.0"
+pyphen = "^0.13.2"
 
 
 [tool.poetry.group.dev.dependencies]

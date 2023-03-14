@@ -63,6 +63,9 @@ The following examples come from the derivatives analytics with Python book
 > Part 3 dives into market based valuations
 - derivatives-with-python/part3
 
+The following examples come from the Building Machine Leaning Powered Applications Going From Idea to Product Python book
+- building-ml-powered-apps/
+
 ### Resources
 
 Interesting [hacker news article](https://news.ycombinator.com/item?id=34971883) talks about challenges they have with AI in development scenarios. It sounds like it is mostly frustrations due to deployment / infrastructure and rapid prototyping

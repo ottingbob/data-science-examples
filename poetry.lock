@@ -3138,6 +3138,22 @@ files = [
 diagrams = ["jinja2", "railroad-diagrams"]
 
 [[package]]
+name = "pyphen"
+version = "0.13.2"
+description = "Pure Python module to hyphenate text"
+category = "main"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "pyphen-0.13.2-py3-none-any.whl", hash = "sha256:e88cfb46aed61f4c7fe49592ff322e6266485fd2447c818a9123485cd92b7ef4"},
+    {file = "pyphen-0.13.2.tar.gz", hash = "sha256:847f57a043a58408f24670ae0184ff6edfb5fd5731743208228c028ddc514438"},
+]
+
+[package.extras]
+doc = ["sphinx", "sphinx_rtd_theme"]
+test = ["coverage[toml]", "flake8 (<5)", "pytest", "pytest-cov", "pytest-flake8", "pytest-isort", "pytest-xdist"]
+
+[[package]]
 name = "pyrsistent"
 version = "0.19.3"
 description = "Persistent/Functional/Immutable data structures"
@@ -5189,4 +5205,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "84d551a6be059aaa623bc473e747c62aa4bd21df1a51581798fb9c079290970d"
+content-hash = "7729979f8f9f62089743a0aa87575c11fa296e656664d1d531487e9a4af75311"
