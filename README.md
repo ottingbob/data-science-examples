@@ -66,6 +66,30 @@ The following examples come from the derivatives analytics with Python book
 The following examples come from the Building Machine Leaning Powered Applications Going From Idea to Product Python book
 - building-ml-powered-apps/
 
+### Installations
+
+In order to try and get `umap-learn` I needed to get a version of llvm working.
+
+In my attempt it looks like the library is still too old to work with python 3.11 =(
+
+```bash
+$ poetry add umap-learn
+
+FileNotFoundError: [Errno 2] No such file or directory: 'llvm-config'
+RuntimeError: llvm-config failed executing, please point LLVM_CONFIG to the path for llvm-config
+
+$ apt-cache search "llvm-.*-dev" | grep -v ocaml | sort
+llvm-11-dev - Modular compiler and toolchain technologies, libraries and headers
+
+$ sudo apt install llvm-11-dev
+
+$ ls /usr/bin/llvm-config*
+/usr/bin/llvm-config-11
+
+$ LLVM_CONFIG=/usr/bin/llvm-config-11  poetry add umap-learn
+RuntimeError: Building llvmlite requires LLVM 10.0.x or 9.0.x, got '11.1.0'. Be sure to set LLVM_CONFIG to the right executable path.
+```
+
 ### Resources
 
 Interesting [hacker news article](https://news.ycombinator.com/item?id=34971883) talks about challenges they have with AI in development scenarios. It sounds like it is mostly frustrations due to deployment / infrastructure and rapid prototyping
