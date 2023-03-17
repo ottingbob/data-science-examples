@@ -3,7 +3,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import spacy
 from matplotlib.patches import Rectangle
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Load the data from the example file
 df = pd.read_csv(Path("./ml-powered-applications/data/writers.csv"))
@@ -118,3 +120,21 @@ final_features = final[cols_to_keep]
 print(final_features)
 
 # TODO: Work on the vectorizer next...
+# Term Frequency -- Inverse document frequency
+vectorizer = TfidfVectorizer(
+    strip_accents="ascii", min_df=5, max_df=0.5, max_features=10_000
+)
+bag_of_words = vectorizer.fit_transform(df[df["is_question"]]["full_text"])
+print(bag_of_words)
+
+# Load a large model and disable pipeline unnecessary parts for our task to speed
+# up the vectorization process
+# FIXME: Double check that this model name is correct...
+#   OR check if the model needs to be downloaded prior to using it...
+nlp = spacy.load("en_core_web_lg", disable=["parser", "tagger", "ner", "textcat"])
+
+# Get the vector for each of the questions. The default vectorizer returned is the
+# average of all vectors in the sentence
+spacy_emb = df[df["is_question"]]["full_text"].apply(lambda x: nlp(x).vector)
+embeddings = np.vstack(spacy_emb)
+print(embeddings)

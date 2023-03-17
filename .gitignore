@@ -2,6 +2,9 @@
 */__pycache__/
 *.pyc
 
+# Reference examples
+# ml-powered-applications/
+
 # Environment files
 .env
 
