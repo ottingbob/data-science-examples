@@ -5,6 +5,9 @@
 # Reference examples
 # ml-powered-applications/
 
+# Locally build models
+building-ml-powered-apps/models/
+
 # Environment files
 .env
 
