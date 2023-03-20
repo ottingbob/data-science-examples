@@ -5,12 +5,20 @@ import pandas as pd
 from bs4 import BeautifulSoup
 
 
-def parse_xml_to_csv(path: Path) -> pd.DataFrame:
+def parse_xml_to_csv(curr_path: Path) -> pd.DataFrame:
     """
     Open .xml posts dump and convert the text to a csv, tokenizing it in the process
-    :param path: path to the xml document containing posts
+    :param curr_path: path to the current testing file
     :return: a dataframe of processed text
     """
+    # Find parent directory for `data-science-examples`
+    base_path = ""
+    for p in curr_path.parents:
+        if str(p).split("/")[-1] == "data-science-examples":
+            base_path = p
+    path = Path(
+        str(base_path) + "/ml-powered-applications/tests/fixtures/MiniPosts.xml"
+    )
 
     # Use python's standard library to parse XML file
     doc = ElT.parse(path)

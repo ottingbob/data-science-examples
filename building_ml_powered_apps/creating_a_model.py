@@ -48,6 +48,12 @@ def format_raw_df(df: pd.DataFrame) -> pd.DataFrame:
     # Label a question as a post id of 1
     df["is_question"] = df["PostTypeId"] == 1
 
+    # Filtering out PostTypeIds other than documented ones
+    df = df[df["PostTypeId"].isin([1, 2])]
+
+    # Convert `ParentId` to int64 to join correctly
+    df["ParentId"] = df["ParentId"].notnull().astype(int)
+
     # Link questions and answers
     df = df.join(
         df[["Id", "Title", "body_text", "Score", "AcceptedAnswerId"]],
@@ -369,7 +375,7 @@ def visualize_one_exp(features, labels, index, class_names=["Low score", "High s
     print("True class: %s" % class_names[labels[index]])
     # exp.show_in_notebook(text=True)
     explaination_path = Path(
-        "./building-ml-powered-apps/models/model_1_explainations.html"
+        "./building_ml_powered_apps/models/model_1_explainations.html"
     )
     exp.save_to_file(explaination_path)
     # open up generated file automatically
@@ -516,8 +522,8 @@ if __name__ == "__main__":
     )
 
     # Save the trained model and vectorizer to disk for future use:
-    model_path = Path("./building-ml-powered-apps/models/model_1.pkl")
-    vectorizer_path = Path("./building-ml-powered-apps/models/vectorizer_1.pkl")
+    model_path = Path("./building_ml_powered_apps/models/model_1.pkl")
+    vectorizer_path = Path("./building_ml_powered_apps/models/vectorizer_1.pkl")
     joblib.dump(clf, model_path)
     joblib.dump(vectorizer, vectorizer_path)
 

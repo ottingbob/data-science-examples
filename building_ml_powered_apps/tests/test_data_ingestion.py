@@ -28,17 +28,8 @@ class DataIngestionTests(TestCase):
         """
         Use parser to return DataFrame
         """
-        # Find parent directory for `data-science-examples`
-        base_path = ""
         curr_path = Path(os.path.dirname(__file__))
-        for p in curr_path.parents:
-            if str(p).split("/")[-1] == "data-science-examples":
-                base_path = p
-        return parse_xml_to_csv(
-            Path(
-                str(base_path) + "/ml-powered-applications/tests/fixtures/MiniPosts.xml"
-            )
-        )
+        return parse_xml_to_csv(curr_path)
 
     def test_parser_returns_dataframe(self):
         """
