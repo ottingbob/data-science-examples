@@ -2,11 +2,14 @@
 */__pycache__/
 *.pyc
 
+# Testing artifacts
+.coverage
+
 # Reference examples
 # ml-powered-applications/
 
 # Locally build models
-building-ml-powered-apps/models/
+building_ml_powered_apps/models/
 
 # Environment files
 .env

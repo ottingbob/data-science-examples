@@ -351,151 +351,6 @@ def get_feature_importance(
     )
 
 
-random.seed(40)
-df = pd.read_csv(Path("./ml-powered-applications/data/writers.csv"))
-df = format_raw_df(df.copy())
-# Only use the questions ??
-df = df.loc[df["is_question"]].copy()
-
-# Add features, vectorize, and create train / test split
-df = add_features_to_df(df.copy())
-train_df, test_df = get_split_by_author(df, test_size=0.2, random_state=40)
-vectorizer = train_vectorizer(train_df)
-train_df["vectors"] = get_vectorized_series(train_df["full_text"].copy(), vectorizer)
-test_df["vectors"] = get_vectorized_series(test_df["full_text"].copy(), vectorizer)
-
-# Define features and get related features from test and train dataframes
-features = ["action_verb_full", "question_mark_full", "text_len", "language_question"]
-x_train, y_train = get_feature_vector_and_label(train_df, features)
-x_test, y_test = get_feature_vector_and_label(test_df, features)
-
-# Train the model
-clf = RandomForestClassifier(n_estimators=100, class_weight="balanced", oob_score=True)
-clf.fit(x_train, y_train)
-y_predicted = clf.predict(x_test)
-y_predicted_probs = clf.predict_proba(x_test)
-
-print(y_train.value_counts())
-
-# Now that the model is trained evaluate the results starting with aggregate metrics
-
-# Training accuracy:
-# Thanks to https://datascience.stackexchange.com/questions/13151/randomforestclassifier-oob-scoring-method
-y_train_pred = np.argmax(clf.oob_decision_function_, axis=1)
-accuracy, precision, recall, f1 = get_metrics(y_train, y_train_pred)
-print(
-    f"Training accuracy = {accuracy:.3f}, precision = {precision:.3f}, recall = {recall:.3f}, f1 = {f1:.3f}"
-)
-
-# Validation accuracy:
-accuracy, precision, recall, f1 = get_metrics(y_test, y_predicted)
-print(
-    f"Validation accuracy = {accuracy:.3f}, precision = {precision:.3f}, recall = {recall:.3f}, f1 = {f1:.3f}"
-)
-
-# Save the trained model and vectorizer to disk for future use:
-model_path = Path("./building-ml-powered-apps/models/model_1.pkl")
-vectorizer_path = Path("./building-ml-powered-apps/models/vectorizer_1.pkl")
-joblib.dump(clf, model_path)
-joblib.dump(vectorizer, vectorizer_path)
-
-# To use it on unseen data, define and use an inference function against our trained model.
-# Check the probability of an arbitrary question receiving a high score according to our model
-# Inference function expects an array of questions so make an array of length 1
-test_q = ["bad question"]
-probs = get_model_probabilities_for_input_texts(test_q, features, clf, vectorizer)
-# Index 1 corresponds to the positive class here
-print(
-    f"{probs[0][1]} probability of the question receiving a high score according to our model"
-)
-
-# Now explore the data:
-# We start by investigating a confusion matrix which helps us compare a models predictions
-# with the true classes for each class
-get_confusion_matrix_plot(y_predicted, y_test)
-
-# A ROC (Receiver operating characteristic) plots true positive rate as a function of
-# the false positive rate
-# This uses a decision threshold to determine whether an example is of a certain class
-# if the probability reported by the model is above a given amount
-# get_roc_plot(y_predicted_probs[:, 1], y_test)
-
-# Plot with a specific false positive rate in mind:
-get_roc_plot(y_predicted_probs[:, 1], y_test, fpr_bar=0.1, figsize=(10, 10))
-# For the given FPR of `0.1` our model has around a `0.2` true positive rate. In an application
-# where maintaining this GPR constraint is important, we will continue to track the metric in
-# following changes / experiments
-
-# The final test we look at is a calibration curve. This plots a fraction of actual positive
-# examples as a function of a models probability score. The curve measures the quality of a
-# models probability estimate (when a model says the prob is X% is that really the case??)
-get_calibration_plot(y_predicted_probs[:, 1], y_test, figsize=(9, 9))
-
-# plt.show()
-
-test_analysis_df = test_df.copy()
-test_analysis_df["predicted_proba"] = y_predicted_probs[:, 1]
-test_analysis_df["true_label"] = y_test
-threshold = 0.5
-
-top_pos, top_neg, worst_pos, worst_neg, unsure = get_top_k(
-    test_analysis_df, "predicted_proba", "true_label", k=2
-)
-pd.options.display.max_colwidth = 500
-
-to_display = [
-    "predicted_proba",
-    "true_label",
-    "text_len",
-    "Title",
-    "body_text",
-    "action_verb_full",
-    "question_mark_full",
-    "language_question",
-]
-
-# Most confident correct positive predictions
-print(top_pos[to_display])
-# Most confident correct negative predictions
-print(top_neg[to_display])
-
-# Most confident incorrect negative predictions
-print(worst_pos[to_display])
-# Most confident incorrect positive predictions
-print(worst_neg[to_display])
-
-# Unsure cases, where the model porbability is closes to equal for all classes
-# In this case with 2 classes it would just be `0.5`
-print(unsure[to_display])
-
-# Evaluate feature importance by looking at the learned parameters of the model:
-k = 10
-all_feature_names: np.ndarray = vectorizer.get_feature_names_out()
-all_feature_names = np.append(all_feature_names, features)
-
-print(f"Top {k} importances:")
-print(
-    "\n".join(
-        [
-            # `g` formatting keeps the trailing 0's
-            f"{tup[0]}: {tup[1]:.2g}"
-            for tup in get_feature_importance(clf, all_feature_names)[:k]
-        ]
-    )
-)
-print(f"Bottom {k} importances:")
-print(
-    "\n".join(
-        [
-            f"{tup[0]}: {tup[1]:.2g}"
-            for tup in get_feature_importance(clf, all_feature_names)[-k:]
-        ]
-    )
-)
-
-
-# When features become complicated feature importances can be harder to interpret so we
-# can use black box explainers to attempt to explain models predictions
 def explain_one_instance(instance, class_names):
     func = partial(
         get_model_probabilities_for_input_texts,
@@ -522,11 +377,6 @@ def visualize_one_exp(features, labels, index, class_names=["Low score", "High s
     subprocess.run(command, shell=True)
 
 
-# Visualize one example
-# visualize_one_exp(list(test_df["full_text"]), list(y_test), 7)
-
-
-# Now get predictions across 500 questions in the dataset
 def get_statistical_explanation(
     test_set: List[str],
     sample_size: int,
@@ -580,29 +430,6 @@ def get_statistical_explanation(
     return sorted_contributions
 
 
-label_to_text = {
-    0: "Low score",
-    1: "High score",
-}
-func = partial(
-    get_model_probabilities_for_input_texts,
-    feature_list=features,
-    model=clf,
-    vectorizer=vectorizer,
-)
-# Not sure if this function actually makes sense... not only does it take 30+ mins to run the first
-# double nested for loop (LOL) it seems like we _already_ have the predictors available to us from
-# the model... so lets just use those...?
-sorted_contributions = get_statistical_explanation(
-    list(test_df["full_text"]),
-    5,
-    func,
-    label_to_text,
-)
-print(sorted_contributions)
-
-
-# And now plot the most important words across the 500 questions
 def plot_important_words(top_scores, top_words, bottom_scores, bottom_words, name):
     y_pos = np.arange(len(top_words))
     top_pairs = [(a, b) for a, b in zip(top_words, top_scores)]
@@ -636,25 +463,211 @@ def plot_important_words(top_scores, top_words, bottom_scores, bottom_words, nam
     plt.show()
 
 
-# The model has trouble representing rare words from the bag of words features. We need to try
-# and fix this by either getting a larger dataset to expose a more varied vocabulary, or create
-# features that will be less sparse
-feature_importances = get_feature_importance(clf, all_feature_names)
-# Remove the features we added
-feature_importances = list(filter(lambda t: t[0] not in features, feature_importances))
-# Top importances
-k = 10
-top_feature_importances = feature_importances[:k]
-print(top_feature_importances)
-# Bottom importances
-bottom_feature_importances = feature_importances[-k:]
-print(bottom_feature_importances)
+if __name__ == "__main__":
+    random.seed(40)
+    df = pd.read_csv(Path("./ml-powered-applications/data/writers.csv"))
+    df = format_raw_df(df.copy())
+    # Only use the questions ??
+    df = df.loc[df["is_question"]].copy()
 
-# Format in the correct way for the function...
-plot_important_words(
-    [t[1] for t in top_feature_importances],
-    [t[0] for t in top_feature_importances],
-    [t[1] for t in bottom_feature_importances],
-    [t[0] for t in bottom_feature_importances],
-    "Most important words for relevance",
-)
+    # Add features, vectorize, and create train / test split
+    df = add_features_to_df(df.copy())
+    train_df, test_df = get_split_by_author(df, test_size=0.2, random_state=40)
+    vectorizer = train_vectorizer(train_df)
+    train_df["vectors"] = get_vectorized_series(
+        train_df["full_text"].copy(), vectorizer
+    )
+    test_df["vectors"] = get_vectorized_series(test_df["full_text"].copy(), vectorizer)
+
+    # Define features and get related features from test and train dataframes
+    features = [
+        "action_verb_full",
+        "question_mark_full",
+        "text_len",
+        "language_question",
+    ]
+    x_train, y_train = get_feature_vector_and_label(train_df, features)
+    x_test, y_test = get_feature_vector_and_label(test_df, features)
+
+    # Train the model
+    clf = RandomForestClassifier(
+        n_estimators=100, class_weight="balanced", oob_score=True
+    )
+    clf.fit(x_train, y_train)
+    y_predicted = clf.predict(x_test)
+    y_predicted_probs = clf.predict_proba(x_test)
+
+    print(y_train.value_counts())
+
+    # Now that the model is trained evaluate the results starting with aggregate metrics
+
+    # Training accuracy:
+    # Thanks to https://datascience.stackexchange.com/questions/13151/randomforestclassifier-oob-scoring-method
+    y_train_pred = np.argmax(clf.oob_decision_function_, axis=1)
+    accuracy, precision, recall, f1 = get_metrics(y_train, y_train_pred)
+    print(
+        f"Training accuracy = {accuracy:.3f}, precision = {precision:.3f}, recall = {recall:.3f}, f1 = {f1:.3f}"
+    )
+
+    # Validation accuracy:
+    accuracy, precision, recall, f1 = get_metrics(y_test, y_predicted)
+    print(
+        f"Validation accuracy = {accuracy:.3f}, precision = {precision:.3f}, recall = {recall:.3f}, f1 = {f1:.3f}"
+    )
+
+    # Save the trained model and vectorizer to disk for future use:
+    model_path = Path("./building-ml-powered-apps/models/model_1.pkl")
+    vectorizer_path = Path("./building-ml-powered-apps/models/vectorizer_1.pkl")
+    joblib.dump(clf, model_path)
+    joblib.dump(vectorizer, vectorizer_path)
+
+    # To use it on unseen data, define and use an inference function against our trained model.
+    # Check the probability of an arbitrary question receiving a high score according to our model
+    # Inference function expects an array of questions so make an array of length 1
+    test_q = ["bad question"]
+    probs = get_model_probabilities_for_input_texts(test_q, features, clf, vectorizer)
+    # Index 1 corresponds to the positive class here
+    print(
+        f"{probs[0][1]} probability of the question receiving a high score according to our model"
+    )
+
+    # Now explore the data:
+    # We start by investigating a confusion matrix which helps us compare a models predictions
+    # with the true classes for each class
+    get_confusion_matrix_plot(y_predicted, y_test)
+
+    # A ROC (Receiver operating characteristic) plots true positive rate as a function of
+    # the false positive rate
+    # This uses a decision threshold to determine whether an example is of a certain class
+    # if the probability reported by the model is above a given amount
+    # get_roc_plot(y_predicted_probs[:, 1], y_test)
+
+    # Plot with a specific false positive rate in mind:
+    get_roc_plot(y_predicted_probs[:, 1], y_test, fpr_bar=0.1, figsize=(10, 10))
+    # For the given FPR of `0.1` our model has around a `0.2` true positive rate. In an application
+    # where maintaining this GPR constraint is important, we will continue to track the metric in
+    # following changes / experiments
+
+    # The final test we look at is a calibration curve. This plots a fraction of actual positive
+    # examples as a function of a models probability score. The curve measures the quality of a
+    # models probability estimate (when a model says the prob is X% is that really the case??)
+    get_calibration_plot(y_predicted_probs[:, 1], y_test, figsize=(9, 9))
+
+    # plt.show()
+
+    test_analysis_df = test_df.copy()
+    test_analysis_df["predicted_proba"] = y_predicted_probs[:, 1]
+    test_analysis_df["true_label"] = y_test
+    threshold = 0.5
+
+    top_pos, top_neg, worst_pos, worst_neg, unsure = get_top_k(
+        test_analysis_df, "predicted_proba", "true_label", k=2
+    )
+    pd.options.display.max_colwidth = 500
+
+    to_display = [
+        "predicted_proba",
+        "true_label",
+        "text_len",
+        "Title",
+        "body_text",
+        "action_verb_full",
+        "question_mark_full",
+        "language_question",
+    ]
+
+    # Most confident correct positive predictions
+    print(top_pos[to_display])
+    # Most confident correct negative predictions
+    print(top_neg[to_display])
+
+    # Most confident incorrect negative predictions
+    print(worst_pos[to_display])
+    # Most confident incorrect positive predictions
+    print(worst_neg[to_display])
+
+    # Unsure cases, where the model porbability is closes to equal for all classes
+    # In this case with 2 classes it would just be `0.5`
+    print(unsure[to_display])
+
+    # Evaluate feature importance by looking at the learned parameters of the model:
+    k = 10
+    all_feature_names: np.ndarray = vectorizer.get_feature_names_out()
+    all_feature_names = np.append(all_feature_names, features)
+
+    print(f"Top {k} importances:")
+    print(
+        "\n".join(
+            [
+                # `g` formatting keeps the trailing 0's
+                f"{tup[0]}: {tup[1]:.2g}"
+                for tup in get_feature_importance(clf, all_feature_names)[:k]
+            ]
+        )
+    )
+    print(f"Bottom {k} importances:")
+    print(
+        "\n".join(
+            [
+                f"{tup[0]}: {tup[1]:.2g}"
+                for tup in get_feature_importance(clf, all_feature_names)[-k:]
+            ]
+        )
+    )
+
+    # When features become complicated feature importances can be harder to interpret so we
+    # can use black box explainers to attempt to explain models predictions
+
+    # Visualize one example
+    # visualize_one_exp(list(test_df["full_text"]), list(y_test), 7)
+
+    # Now get predictions across 500 questions in the dataset
+    label_to_text = {
+        0: "Low score",
+        1: "High score",
+    }
+    func = partial(
+        get_model_probabilities_for_input_texts,
+        feature_list=features,
+        model=clf,
+        vectorizer=vectorizer,
+    )
+    # Not sure if this function actually makes sense... not only does it take 30+ mins to run the first
+    # double nested for loop (LOL) it seems like we _already_ have the predictors available to us from
+    # the model... so lets just use those...?
+    sorted_contributions = get_statistical_explanation(
+        list(test_df["full_text"]),
+        5,
+        func,
+        label_to_text,
+    )
+    print(sorted_contributions)
+
+    #
+    # And now plot the most important words across the 500 questions
+    #
+
+    # The model has trouble representing rare words from the bag of words features. We need to try
+    # and fix this by either getting a larger dataset to expose a more varied vocabulary, or create
+    # features that will be less sparse
+    feature_importances = get_feature_importance(clf, all_feature_names)
+    # Remove the features we added
+    feature_importances = list(
+        filter(lambda t: t[0] not in features, feature_importances)
+    )
+    # Top importances
+    k = 10
+    top_feature_importances = feature_importances[:k]
+    print(top_feature_importances)
+    # Bottom importances
+    bottom_feature_importances = feature_importances[-k:]
+    print(bottom_feature_importances)
+
+    # Format in the correct way for the function...
+    plot_important_words(
+        [t[1] for t in top_feature_importances],
+        [t[0] for t in top_feature_importances],
+        [t[1] for t in bottom_feature_importances],
+        [t[0] for t in bottom_feature_importances],
+        "Most important words for relevance",
+    )
