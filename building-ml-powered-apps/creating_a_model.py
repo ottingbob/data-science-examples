@@ -1,11 +1,16 @@
 import itertools
+import random
+import subprocess
+from collections import defaultdict
+from functools import partial
 from pathlib import Path
-from typing import Any, List, Tuple
+from typing import Any, Callable, Dict, List, Tuple
 
 import joblib
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from lime.lime_text import LimeTextExplainer
 from scipy.sparse import hstack, vstack
 from sklearn.calibration import calibration_curve
 from sklearn.ensemble import RandomForestClassifier
@@ -23,6 +28,7 @@ from sklearn.metrics import (
     roc_curve,
 )
 from sklearn.model_selection import GroupShuffleSplit
+from tqdm.auto import tqdm
 
 
 def format_raw_df(df: pd.DataFrame) -> pd.DataFrame:
@@ -132,7 +138,7 @@ def get_model_probabilities_for_input_texts(
     feature_list: List[str],
     model: RandomForestClassifier,
     vectorizer: TfidfVectorizer,
-):
+) -> np.ndarray:
     vectors = vectorizer.transform(text_array)
     text_ser = pd.DataFrame(text_array, columns=["full_text"])
     text_ser = add_features_to_df(text_ser)
@@ -332,6 +338,20 @@ def get_top_k(
     )
 
 
+def get_feature_importance(
+    clf: RandomForestClassifier, feature_names: np.ndarray
+) -> List[Tuple[str, float]]:
+    importances = clf.feature_importances_
+    indices_sorted_by_importance = np.argsort(importances)[::-1]
+    return list(
+        zip(
+            feature_names[indices_sorted_by_importance],
+            importances[indices_sorted_by_importance],
+        )
+    )
+
+
+random.seed(40)
 df = pd.read_csv(Path("./ml-powered-applications/data/writers.csv"))
 df = format_raw_df(df.copy())
 # Only use the questions ??
@@ -447,3 +467,151 @@ print(worst_neg[to_display])
 # Unsure cases, where the model porbability is closes to equal for all classes
 # In this case with 2 classes it would just be `0.5`
 print(unsure[to_display])
+
+# Evaluate feature importance by looking at the learned parameters of the model:
+k = 10
+all_feature_names: np.ndarray = vectorizer.get_feature_names_out()
+all_feature_names = np.append(all_feature_names, features)
+
+print(f"Top {k} importances:")
+print(
+    "\n".join(
+        [
+            # `g` formatting keeps the trailing 0's
+            f"{tup[0]}: {tup[1]:.2g}"
+            for tup in get_feature_importance(clf, all_feature_names)[:k]
+        ]
+    )
+)
+print(f"Bottom {k} importances:")
+print(
+    "\n".join(
+        [
+            f"{tup[0]}: {tup[1]:.2g}"
+            for tup in get_feature_importance(clf, all_feature_names)[-k:]
+        ]
+    )
+)
+
+
+# When features become complicated feature importances can be harder to interpret so we
+# can use black box explainers to attempt to explain models predictions
+def explain_one_instance(instance, class_names):
+    func = partial(
+        get_model_probabilities_for_input_texts,
+        feature_list=features,
+        model=clf,
+        vectorizer=vectorizer,
+    )
+    explainer = LimeTextExplainer(class_names=class_names)
+    exp = explainer.explain_instance(instance, func, num_features=6)
+    return exp
+
+
+def visualize_one_exp(features, labels, index, class_names=["Low score", "High score"]):
+    exp = explain_one_instance(features[index], class_names=class_names)
+    print("Index: %d" % index)
+    print("True class: %s" % class_names[labels[index]])
+    # exp.show_in_notebook(text=True)
+    explaination_path = Path(
+        "./building-ml-powered-apps/models/model_1_explainations.html"
+    )
+    exp.save_to_file(explaination_path)
+    # open up generated file automatically
+    command = f"firefox {explaination_path}"
+    subprocess.run(command, shell=True)
+
+
+# Visualize one example
+# visualize_one_exp(list(test_df["full_text"]), list(y_test), 7)
+
+
+# Now get predictions across 500 questions in the dataset
+def get_statistical_explanation(
+    test_set: List[str],
+    sample_size: int,
+    model_pipeline: Callable[List[Any], np.ndarray],
+    label_dict: Dict[int, str],
+):
+    sample_sentences = random.sample(test_set, sample_size)
+    explainer = LimeTextExplainer()
+
+    labels_to_sentences = defaultdict(list)
+    contributors = defaultdict(dict)
+
+    # First find contributing words to each class
+    progress_bar = tqdm(range(len(sample_sentences)))
+    for sentence in sample_sentences:
+        probabilities = model_pipeline([sentence])
+        curr_label = probabilities[0].argmax()
+        labels_to_sentences[curr_label].append(sentence)
+        exp = explainer.explain_instance(
+            sentence, model_pipeline, num_features=6, labels=[curr_label]
+        )
+        listed_explaination = exp.as_list(label=curr_label)
+
+        for word, contributing_weight in listed_explaination:
+            if word in contributors[curr_label]:
+                contributors[curr_label][word].append(contributing_weight)
+            else:
+                contributors[curr_label][word] = [contributing_weight]
+        progress_bar.update(1)
+
+    # Average each words contribution to a class and sort by impact
+    average_contributions = {}
+    sorted_contributions = {}
+    progress_bar = tqdm(range(len(contributors.items())))
+    for label, lexica in contributors.items():
+        # curr_label = label
+        # curr_lexica = lexica
+        average_contributions[label] = pd.Series(index=lexica.keys())
+        for word, scores in lexica.items():
+            average_contributions[label].loc[word] = (
+                np.sum(np.array(scores)) / sample_size
+            )
+        detractors = average_contributions[curr_label].sort_values()
+        supporters = average_contributions[curr_label].sort_values(ascending=False)
+        sorted_contributions[label_dict[curr_label]] = {
+            "detractors": detractors,
+            "supporters": supporters,
+        }
+        progress_bar.update(1)
+
+    return sorted_contributions
+
+
+label_to_text = {
+    0: "Low score",
+    1: "High score",
+}
+func = partial(
+    get_model_probabilities_for_input_texts,
+    feature_list=features,
+    model=clf,
+    vectorizer=vectorizer,
+)
+# Not sure if this function actually makes sense... not only does it take 30+ mins to run the first
+# double nested for loop (LOL) it seems like we _already_ have the predictors available to us from
+# the model... so lets just use those...?
+sorted_contributions = get_statistical_explanation(
+    list(test_df["full_text"]),
+    5,
+    func,
+    label_to_text,
+)
+print(sorted_contributions)
+
+
+# And now plot the most important words across the 500 questions
+def plot_important_words(top_scores, top_words, bottom_scores, bottom_words, name):
+    y_pos = np.arange(len(top_words))
+    top_pairs = [(a, b) for a, b in zip(top_words, top_scores)]
+    top_pairs = sorted(top_pairs, key=lambda x: x[1])
+
+    bottom_pairs = [(a, b) for a, b in zip(bottom_words, bottom_scores)]
+    bottom_pairs = sorted(bottom_pairs, key=lambda x: x[1])
+
+
+# The model has trouble representing rare words from the bag of words features. We need to try
+# and fix this by either getting a larger dataset to expose a more varied vocabulary, or create
+# features that will be less sparse
