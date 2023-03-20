@@ -611,7 +611,50 @@ def plot_important_words(top_scores, top_words, bottom_scores, bottom_words, nam
     bottom_pairs = [(a, b) for a, b in zip(bottom_words, bottom_scores)]
     bottom_pairs = sorted(bottom_pairs, key=lambda x: x[1])
 
+    top_words = [a[0] for a in top_pairs]
+    top_scores = [a[1] for a in top_pairs]
+
+    bottom_words = [a[0] for a in bottom_pairs]
+    bottom_scores = [a[1] for a in bottom_pairs]
+
+    plt.figure(figsize=(10, 10))
+    plt.subplot(121)
+    plt.barh(y_pos, bottom_scores, align="center", alpha=0.5)
+    plt.title("Low score", fontsize=20)
+    plt.yticks(y_pos, bottom_words, fontsize=14)
+    plt.suptitle("Key words", fontsize=16)
+    plt.xlabel("Importance", fontsize=20)
+
+    plt.subplot(122)
+    plt.barh(y_pos, top_scores, align="center", alpha=0.5)
+    plt.title("High score", fontsize=20)
+    plt.yticks(y_pos, top_words, fontsize=14)
+    plt.suptitle(name, fontsize=16)
+    plt.xlabel("Importance", fontsize=20)
+
+    plt.subplots_adjust(wspace=0.8)
+    plt.show()
+
 
 # The model has trouble representing rare words from the bag of words features. We need to try
 # and fix this by either getting a larger dataset to expose a more varied vocabulary, or create
 # features that will be less sparse
+feature_importances = get_feature_importance(clf, all_feature_names)
+# Remove the features we added
+feature_importances = list(filter(lambda t: t[0] not in features, feature_importances))
+# Top importances
+k = 10
+top_feature_importances = feature_importances[:k]
+print(top_feature_importances)
+# Bottom importances
+bottom_feature_importances = feature_importances[-k:]
+print(bottom_feature_importances)
+
+# Format in the correct way for the function...
+plot_important_words(
+    [t[1] for t in top_feature_importances],
+    [t[0] for t in top_feature_importances],
+    [t[1] for t in bottom_feature_importances],
+    [t[0] for t in bottom_feature_importances],
+    "Most important words for relevance",
+)
