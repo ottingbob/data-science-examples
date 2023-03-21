@@ -27,7 +27,7 @@ from sklearn.metrics import (
     recall_score,
     roc_curve,
 )
-from sklearn.model_selection import GroupShuffleSplit
+from sklearn.model_selection import GroupShuffleSplit, train_test_split
 from tqdm.auto import tqdm
 
 
@@ -121,8 +121,16 @@ def get_feature_vector_and_label(
     vec_features = vstack(df["vectors"])
     num_features = df[feature_names].astype(float)
     features = hstack([vec_features, num_features])
+    # Make sure that the `Score` column is of type float...
+    df["Score"] = df["Score"].astype(float)
     labels = df["Score"] > df["Score"].median()
     return features, labels
+
+
+def get_random_train_test_split(
+    df: pd.DataFrame, test_size=0.3, random_state=40
+) -> Tuple[List[int], List[int]]:
+    return train_test_split(df, test_size=test_size, random_state=random_state)
 
 
 def get_metrics(
@@ -152,6 +160,21 @@ def get_model_probabilities_for_input_texts(
     num_features = text_ser[feature_list].astype(float)
     features = hstack([vec_features, num_features])
     return model.predict_proba(features)
+
+
+def get_model_predictions_for_input_texts(
+    text_array: List[str],
+    feature_list: List[str],
+    model: RandomForestClassifier,
+    vectorizer: TfidfVectorizer,
+) -> List[bool]:
+    # Returns an array of labels for a given array of questions
+    # True represents high scores, False low scores
+    probs = get_model_probabilities_for_input_texts(
+        text_array, feature_list, model, vectorizer
+    )
+    predicted_classes = probs[:, 0] < probs[:, 1]
+    return predicted_classes
 
 
 def get_confusion_matrix_plot(

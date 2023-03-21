@@ -2,21 +2,30 @@
 # 	On the github gist that provided the minified help docs there are examples
 # 	for displaying sections and using a template for coloring etc...
 # 	Could go FULL MONO REPO and expose those at the root as well...
+TEST_BASE := poetry run pytest -rs
+COVERAGE_OPTS := --cov --cov-config=../pyproject.toml
 
 .PHONY: test
 ## Run related tests in test directory
 test:
-	poetry run pytest -rs --cov --cov-config=../pyproject.toml
+	$(TEST_BASE) $(COVERAGE_OPTS)
 
 .PHONY: test-file
 ## Run related tests in specific file
 test-file:
-	poetry run pytest -s ${file}
+	$(TEST_BASE) ${file}
 
 .PHONY: test-case
 ## Run related test case in specific file
 test-case:
-	poetry run pytest -s ${file} -k ${case}
+	$(TEST_BASE) ${file} -k ${case}
+
+.PHONY: html-cover
+## Run tests in test directory and create html coverage and open
+## for viewing
+html-cover:
+	$(TEST_BASE) $(COVERAGE_OPTS) --cov-report=html
+	firefox cov_html/index.html
 
 .DEFAULT_GOAL := show-help
 # See <https://gist.github.com/klmr/575726c7e05d8780505a> for explanation.

@@ -5,7 +5,6 @@ from unittest import TestCase
 
 # Import example file from project to ensure that coverage is working on only source
 # code imported in test files
-import building_ml_powered_apps.creating_a_model
 import pandas as pd
 from building_ml_powered_apps.tests.helpers import parse_xml_to_csv
 

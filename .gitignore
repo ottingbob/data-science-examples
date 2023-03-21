@@ -4,6 +4,7 @@
 
 # Testing artifacts
 .coverage
+cov_html/
 
 # Reference examples
 # ml-powered-applications/
