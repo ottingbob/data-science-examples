@@ -1,9 +1,16 @@
-### Data Science Scripts
+## Data Science Scripts
 
 This is a collection of random data-science exercises either gathered from different articles
 or videos that I have used for learning.
 
 Mileage may vary
+
+### Usage
+
+I setup an `arguably` complicated Makefile setup since I have so many projects in here.
+
+Here is a demonstration of how it works for a given project:
+![Demo](assets/make-demo.gif)
 
 #### Explanations
 

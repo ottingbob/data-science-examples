@@ -1,33 +1,51 @@
-# TODO: If you wanted to go crazy:
-# 	On the github gist that provided the minified help docs there are examples
-# 	for displaying sections and using a template for coloring etc...
-# 	Could go FULL MONO REPO and expose those at the root as well...
-TEST_BASE := poetry run pytest -rs
-COVERAGE_OPTS := --cov --cov-config=../pyproject.toml
+BUILDING_ML_POWERED_APPS_PROJECT_NAME := building_ml_powered_apps
+PROJECT_NAMES += $(BUILDING_ML_POWERED_APPS_PROJECT_NAME)
 
-.PHONY: test
+TEST_BASE := poetry run pytest $(BUILDING_ML_POWERED_APPS_PATH) -rs
+COVERAGE_OPTS := --cov --cov-config=./pyproject.toml
+
+## @section Testing
+
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test
 ## Run related tests in test directory
-test:
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test:
 	$(TEST_BASE) $(COVERAGE_OPTS)
 
-.PHONY: test-file
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test-file
 ## Run related tests in specific file
-test-file:
+## @param file=building_ml_powered_apps/tests/test_model.py File to test
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test-file:
 	$(TEST_BASE) ${file}
 
-.PHONY: test-case
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test-case
 ## Run related test case in specific file
-test-case:
+## @param file=building_ml_powered_apps/tests/test_model.py File to test
+## @param case=test_model_proba Test case regex from file to run
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test-case:
 	$(TEST_BASE) ${file} -k ${case}
 
-.PHONY: html-cover
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).html-cover
 ## Run tests in test directory and create html coverage and open
 ## for viewing
-html-cover:
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME).html-cover:
 	$(TEST_BASE) $(COVERAGE_OPTS) --cov-report=html
-	firefox cov_html/index.html
+	firefox $(BUILDING_ML_POWERED_APPS_PATH)/cov_html/index.html
 
-.DEFAULT_GOAL := show-help
+## @section General
+
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help
+## Displays help for the current project.
+## This is the default target
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help:
+	@FILE=$(BUILDING_ML_POWERED_APPS_PATH)/Makefile \
+		PROJECT_NAME=$(BUILDING_ML_POWERED_APPS_PROJECT_NAME) \
+		./tools/generate-makefile-help.sh
+
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME)
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME): $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help
+
+# FIXME: This has been adapted to the top-level Makefile setup to scale
+# 	to other projects...
 # See <https://gist.github.com/klmr/575726c7e05d8780505a> for explanation.
 .PHONY: show-help
 show-help:

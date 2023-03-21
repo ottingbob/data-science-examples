@@ -85,7 +85,7 @@ sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 # https://github.com/se2p/pynguin/blob/main/pyproject.toml
 [tool.coverage.run]
 omit = [
-  "tests/*"
+  "*/tests/*"
 ]
 branch = true
 
