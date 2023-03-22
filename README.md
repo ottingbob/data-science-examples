@@ -12,14 +12,14 @@ I setup an `arguably` complicated Makefile setup since I have so many projects i
 Here is a demonstration of how it works for a given project:
 ![Demo](assets/make-demo.gif)
 
-#### Explanations
+#### Projects and Explanations
 
-The following directory has examples for learning financial analysis based on [this Udemy course](https://www.udemy.com/course/the-complete-financial-analyst-course)
-The course is meant to work in excel but I have other plans...
+Here are some of the included projects:
+- scripts/
+	> one off examples usually found from blog posts demonstrating a single topic
 - financial-analyst-course-2023/
-
-- self-attention.py
-> Creates an attention model by just using standard matrix multiplication / operations
+	> The following directory has examples for learning financial analysis based on [this Udemy course](https://www.udemy.com/course/the-complete-financial-analyst-course)
+	> The course is meant to work in excel but I have other plans...
 
 The following examples are from a [pycon2020](https://www.youtube.com/watch?v=vyOgWhwUmec)
 presentation with the corresponding [github](https://github.com/keithgalli/pycon2020):
@@ -74,10 +74,6 @@ Here is the related [github repo](https://github.com/yhilpisch/dawp/blob/master/
 The following examples come from the Building Machine Leaning Powered Applications Going From Idea to Product Python book
 Here is the related [github repo](https://github.com/hundredblocks/ml-powered-applications)
 - building-ml-powered-apps/
-
-TODO: I need to add a scripts directory and remove these one off files:
-- dimensionality-reduction-algos.py
-> Quick and easy example of some dimensionality reduction algorithms included in sklearn
 
 ### Installations
 
