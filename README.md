@@ -3,9 +3,11 @@
 This is a collection of random data-science exercises either gathered from different articles
 or videos that I have used for learning.
 
-___Mileage may vary___
-<br />
-<img src="assets/ggf.gif" width="200" />
+<div align="center">
+	___Mileage may vary___
+	<br />
+	<img src="assets/ggf.gif" width="200" />
+</div>
 
 ### Usage
 
