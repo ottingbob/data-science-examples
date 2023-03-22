@@ -4,6 +4,7 @@ This is a collection of random data-science exercises either gathered from diffe
 or videos that I have used for learning.
 
 ___Mileage may vary___
+<br />
 <img src="assets/ggf.gif" width="200" />
 
 ### Usage
