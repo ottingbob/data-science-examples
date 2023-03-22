@@ -7,7 +7,7 @@ Mileage may vary
 
 ### Usage
 
-I setup an `arguably` complicated Makefile setup since I have so many projects in here.
+I setup an ___arguably___ complicated Makefile structure since I have so many projects in here.
 
 Here is a demonstration of how it works for a given project:
 ![Demo](assets/make-demo.gif)
@@ -22,17 +22,8 @@ Here are some of the included projects:
 	> The course is meant to work in excel but I have other plans...
 - [hugging_face_course/](https://github.com/ottingbob/data-science-examples/tree/main/hugging_face_course)
 	> This project follows the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt) which provides building and tweaking various types of NLP pipelines. It also exposes a little bit of [gradio](https://gradio.app/) so you can have a way to showcase your models!
-
-The following examples are from a [pycon2020](https://www.youtube.com/watch?v=vyOgWhwUmec)
-presentation with the corresponding [github](https://github.com/keithgalli/pycon2020):
-> All examples are in the pycon2020-examples/ directory
-> Need to run the following to get spacy dataset `poetry run spacy download en_core_web_md`
-- bag-of-words.py
-- word-vectors.py
-- regex-ex.py
-- stemming-lemmatization.py
-- stopwords.py
-- other-tech.py
+- [pycon2020-examples/](https://github.com/ottingbob/data-science-examples/tree/main/pycon2020-examples)
+	> This collection of scripts is based off [Keith Galli's](https://github.com/keithgalli) awesome [PyCon2020 NLP youtube video](https://www.youtube.com/watch?v=vyOgWhwUmec). It runs through various NLP techniques and serves as a good introduction with some guidance for starting off your ML journey
 
 The following examples come from the derivatives analytics with Python book
 Here is the related [github repo](https://github.com/yhilpisch/dawp/blob/master/python36)
