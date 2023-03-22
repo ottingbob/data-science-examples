@@ -15,15 +15,18 @@ Here is a demonstration of how it works for a given project:
 ### Projects and Explanations
 
 Here are some of the included projects:
-- [scripts/](https://github.com/ottingbob/data-science-examples/tree/main/scripts)
-	> one off examples usually found from blog posts demonstrating a single topic
+- [building_ml_powered_apps/](https://github.com/ottingbob/data-science-examples/tree/main/building_ml_powered_apps)
+	> This project is built from the Building Machine Leaning Powered Applications Going From Idea to Product Python book. Here is the related [github repo](https://github.com/hundredblocks/ml-powered-applications)
 - [financial-analyst-course-2023/](https://github.com/ottingbob/data-science-examples/tree/main/financial-analyst-course-2023)
 	> The following directory has examples for learning financial analysis based on [this Udemy course](https://www.udemy.com/course/the-complete-financial-analyst-course)
+	>
 	> The course is meant to work in excel but I have other plans...
 - [hugging_face_course/](https://github.com/ottingbob/data-science-examples/tree/main/hugging_face_course)
 	> This project follows the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt) which provides building and tweaking various types of NLP pipelines. It also exposes a little bit of [gradio](https://gradio.app/) so you can have a way to showcase your models!
 - [pycon2020-examples/](https://github.com/ottingbob/data-science-examples/tree/main/pycon2020-examples)
 	> This collection of scripts is based off [Keith Galli's](https://github.com/keithgalli) awesome [PyCon2020 NLP youtube video](https://www.youtube.com/watch?v=vyOgWhwUmec). It runs through various NLP techniques and serves as a good introduction with some guidance for starting off your ML journey
+- [scripts/](https://github.com/ottingbob/data-science-examples/tree/main/scripts)
+	> one off examples usually found from blog posts demonstrating a single topic
 
 The following examples come from the derivatives analytics with Python book
 Here is the related [github repo](https://github.com/yhilpisch/dawp/blob/master/python36)
@@ -33,10 +36,6 @@ Here is the related [github repo](https://github.com/yhilpisch/dawp/blob/master/
 - derivatives-with-python/part2
 > Part 3 dives into market based valuations
 - derivatives-with-python/part3
-
-The following examples come from the Building Machine Leaning Powered Applications Going From Idea to Product Python book
-Here is the related [github repo](https://github.com/hundredblocks/ml-powered-applications)
-- building-ml-powered-apps/
 
 ### Installations
 
