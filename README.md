@@ -12,7 +12,7 @@ I setup an `arguably` complicated Makefile setup since I have so many projects i
 Here is a demonstration of how it works for a given project:
 ![Demo](assets/make-demo.gif)
 
-#### Projects and Explanations
+### Projects and Explanations
 
 Here are some of the included projects:
 - scripts/
@@ -20,6 +20,8 @@ Here are some of the included projects:
 - financial-analyst-course-2023/
 	> The following directory has examples for learning financial analysis based on [this Udemy course](https://www.udemy.com/course/the-complete-financial-analyst-course)
 	> The course is meant to work in excel but I have other plans...
+- hugging_face_course/
+	> This project follows the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt) which provides building and tweaking various types of NLP pipelines. It also exposes a little bit of [gradio](https://gradio.app/) so you can have a way to showcase your models!
 
 The following examples are from a [pycon2020](https://www.youtube.com/watch?v=vyOgWhwUmec)
 presentation with the corresponding [github](https://github.com/keithgalli/pycon2020):
@@ -31,36 +33,6 @@ presentation with the corresponding [github](https://github.com/keithgalli/pycon
 - stemming-lemmatization.py
 - stopwords.py
 - other-tech.py
-
-The following example is the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt)
-- hugging_face_course/transformer-models.py
-- hugging_face_course/transformer-usage.py
-- hugging_face_course/tuning-models.py
-- hugging_face_course/datasets-lib.py
-- hugging_face_course/datasets-lib-bigdata.py
-- hugging_face_course/datasets-github-issues.py
-- hugging_face_course/datasets-semantic-search.py
-- hugging_face_course/tokenizers-quick-example.py
-- hugging_face_course/tokenizers-bpe.py
-- hugging_face_course/tokenizers-wp.py
-- hugging_face_course/tokenizers-uni.py
-- hugging_face_course/tokenizers-from-scratch.py
-- hugging_face_course/main-nlp-token-classification.py
-- hugging_face_course/main-nlp-masked-language.py
-- hugging_face_course/main-nlp-translation.py
-> In order for this one to work I needed to run the following command due to dependencies with the google/mT5 model checkpoint:
-> `PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python python hugging_face_course/main-nlp-summarization.py`
-- hugging_face_course/main-nlp-summarization.py
-- hugging_face_course/main-nlp-casual-language.py
-- hugging_face_course/main-nlp-question-answering.py
-> The following file provides accelerated models for all the `main-nlp` related examples
-- hugging_face_course/accelerated_models.py
-- hugging_face_course/demo-number-one.py
-- hugging_face_course/gradio-interface-class.py
-- hugging_face_course/gradio-share-demos.py
-- hugging_face_course/gradio-hf-hub-integration.py
-- hugging_face_course/gradio-interface-advanced.py
-- hugging_face_course/gradio-chat-example.py
 
 The following examples come from the derivatives analytics with Python book
 Here is the related [github repo](https://github.com/yhilpisch/dawp/blob/master/python36)
@@ -76,6 +48,12 @@ Here is the related [github repo](https://github.com/hundredblocks/ml-powered-ap
 - building-ml-powered-apps/
 
 ### Installations
+
+During the creation of some of the projects / examples I have encountered some issues when working with my recent version of python 11. For instance tensorflow will not be happy with you and as a result it's probably a good reason to start to learn pytorch.
+
+Anyways opinions aside (this is programming right??) here are some notes I have on some libraries having trouble with my setup.
+
+##### umap-learn
 
 In order to try and get `umap-learn` I needed to get a version of llvm working.
 
