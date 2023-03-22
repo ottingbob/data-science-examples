@@ -9,7 +9,7 @@ Mileage may vary
 
 I setup an ___arguably___ complicated Makefile structure since I have so many projects in here.
 
-Here is a demonstration of how it works for a given project:
+Here is a demonstration of how it works for the related `building_ml_powered_apps` project:
 ![Demo](assets/make-demo.gif)
 
 ### Projects and Explanations
