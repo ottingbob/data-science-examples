@@ -3,7 +3,8 @@
 This is a collection of random data-science exercises either gathered from different articles
 or videos that I have used for learning.
 
-Mileage may vary
+___Mileage may vary___
+![GottaGoFast](assets/ggf.gif)
 
 ### Usage
 
