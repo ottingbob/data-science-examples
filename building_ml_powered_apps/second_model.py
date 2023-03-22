@@ -143,14 +143,17 @@ def add_v2_text_features(df: pd.DataFrame) -> pd.DataFrame:
 #   [prob_low_score1, prob_high_score_1], ...
 # ]
 def get_model_probabilities_for_input_texts(
-    vectorizor, model, text_array: List[str]
+    vectorizer, model, text_array: List[str]
 ) -> np.ndarray:
+    if not vectorizer:
+        vectorizer = joblib.load("./building_ml_powered_apps/models/vectorizer_2.pkl")
     vectors = vectorizer.transform(text_array)
     text_ser = pd.DataFrame(text_array, columns=["full_text"])
     text_ser = add_v2_text_features(text_ser)
     vec_features = vstack(vectors)
     num_features = text_ser[FEATURE_ARR].astype(float)
     features = hstack([vec_features, num_features])
+
     return model.predict_proba(features)
 
 
