@@ -4,7 +4,9 @@ This is a collection of random data-science exercises either gathered from diffe
 or videos that I have used for learning.
 
 <div align="center">
-	___Mileage may vary___
+	<strong>
+		<i>___Mileage may vary___</i>
+	</strong>
 	<br />
 	<img src="assets/ggf.gif" width="200" />
 </div>
