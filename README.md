@@ -63,6 +63,7 @@ The following example is the [hugging face course](https://huggingface.co/course
 - hugging_face_course/gradio-chat-example.py
 
 The following examples come from the derivatives analytics with Python book
+Here is the related [github repo](https://github.com/yhilpisch/dawp/blob/master/python36)
 > This part deals with the market and generalizations / methods to use
 - derivatives-with-python/part1
 > Part 2 works with theoretical valuation
@@ -71,7 +72,12 @@ The following examples come from the derivatives analytics with Python book
 - derivatives-with-python/part3
 
 The following examples come from the Building Machine Leaning Powered Applications Going From Idea to Product Python book
+Here is the related [github repo](https://github.com/hundredblocks/ml-powered-applications)
 - building-ml-powered-apps/
+
+TODO: I need to add a scripts directory and remove these one off files:
+- dimensionality-reduction-algos.py
+> Quick and easy example of some dimensionality reduction algorithms included in sklearn
 
 ### Installations
 

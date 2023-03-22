@@ -83,6 +83,12 @@ sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
 # TODO: These need to be added to my base configuration...
 # Also here is a good configuration for attempting to use `ruff` instead of `flake8`:
 # https://github.com/se2p/pynguin/blob/main/pyproject.toml
+#
+# For instance pylint uses it LOL
+# https://github.com/PyCQA/pylint/blob/47cb11f4cb01a61f83d915d88e828f103a479980/pyproject.toml
+#
+# Here is the good stuff:
+# https://github.com/charliermarsh/ruff
 [tool.coverage.run]
 omit = [
   "*/tests/*"
