@@ -15,12 +15,12 @@ Here is a demonstration of how it works for a given project:
 ### Projects and Explanations
 
 Here are some of the included projects:
-- scripts/
+- [scripts/](https://github.com/ottingbob/data-science-examples/tree/main/scripts)
 	> one off examples usually found from blog posts demonstrating a single topic
-- financial-analyst-course-2023/
+- [financial-analyst-course-2023/](https://github.com/ottingbob/data-science-examples/tree/main/financial-analyst-course-2023)
 	> The following directory has examples for learning financial analysis based on [this Udemy course](https://www.udemy.com/course/the-complete-financial-analyst-course)
 	> The course is meant to work in excel but I have other plans...
-- hugging_face_course/
+- [hugging_face_course/](https://github.com/ottingbob/data-science-examples/tree/main/hugging_face_course)
 	> This project follows the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt) which provides building and tweaking various types of NLP pipelines. It also exposes a little bit of [gradio](https://gradio.app/) so you can have a way to showcase your models!
 
 The following examples are from a [pycon2020](https://www.youtube.com/watch?v=vyOgWhwUmec)
