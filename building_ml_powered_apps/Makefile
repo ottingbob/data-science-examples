@@ -4,6 +4,26 @@ PROJECT_NAMES += $(BUILDING_ML_POWERED_APPS_PROJECT_NAME)
 TEST_BASE := poetry run pytest $(BUILDING_ML_POWERED_APPS_PATH) -rs
 COVERAGE_OPTS := --cov --cov-config=./pyproject.toml
 
+## @section General
+
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help
+## Displays help for the current project.
+## This is the default target
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help:
+	@FILE=$(BUILDING_ML_POWERED_APPS_PATH)/Makefile \
+		PROJECT_NAME=$(BUILDING_ML_POWERED_APPS_PROJECT_NAME) \
+		./tools/generate-makefile-help.sh
+
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME)
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME): $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help
+
+## @section Application
+
+.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).run
+## This runs a demo Flask app to serve the ML models for question improvement
+$(BUILDING_ML_POWERED_APPS_PROJECT_NAME).run:
+		FLASK_APP=$(BUILDING_ML_POWERED_APPS_PATH)/webapp.py poetry run flask run
+
 ## @section Testing
 
 .PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test
@@ -30,19 +50,6 @@ $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test-case:
 $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).html-cover:
 	$(TEST_BASE) $(COVERAGE_OPTS) --cov-report=html
 	firefox $(BUILDING_ML_POWERED_APPS_PATH)/cov_html/index.html
-
-## @section General
-
-.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help
-## Displays help for the current project.
-## This is the default target
-$(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help:
-	@FILE=$(BUILDING_ML_POWERED_APPS_PATH)/Makefile \
-		PROJECT_NAME=$(BUILDING_ML_POWERED_APPS_PROJECT_NAME) \
-		./tools/generate-makefile-help.sh
-
-.PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME)
-$(BUILDING_ML_POWERED_APPS_PROJECT_NAME): $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).help
 
 # FIXME: This has been adapted to the top-level Makefile setup to scale
 # 	to other projects...

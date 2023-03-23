@@ -164,6 +164,20 @@ def get_question_score_from_input(vectorizer, model, question: str) -> pd.DataFr
     return positive_proba
 
 
+# Gets a score that can be displayed in the Flask app
+def get_pos_score_from_text(text: str) -> str:
+    MODEL_PATH = Path("./building_ml_powered_apps/models/model_2.pkl")
+    VECTORIZER_PATH = Path("./building_ml_powered_apps/models/vectorizer_2.pkl")
+    clf = joblib.load(MODEL_PATH)
+    vectorizer = joblib.load(VECTORIZER_PATH)
+    positive_proba = get_question_score_from_input(vectorizer, clf, [text])
+    return f"""
+    Question score (0 is worst, 1 is best):
+    <br/>
+    {positive_proba}
+    """
+
+
 if __name__ == "__main__":
     np.random.seed(35)
     # Check if model exists

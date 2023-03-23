@@ -57,6 +57,7 @@ FEATURE_DISPLAY_NAMES = {
     "X": "frequency of other words",
 }
 
+
 # Prepare LIME explainer using training data
 def get_explainer() -> LimeTabularExplainer:
     df = pd.read_csv(Path("./ml-powered-applications/data/writers_with_features.csv"))
@@ -97,7 +98,7 @@ def _get_recommended_modification(simple_order: str, impact: float) -> str:
 
 
 # Parse explanations returned by LIME into a user readable format
-def parse_explanations(explanations: Tuple[str, float]):
+def parse_explanations(explanations: Tuple[str, float]) -> List[Dict[str, Any]]:
     parsed_exps = []
     for feat_bound, impact in explanations:
         conditions = feat_bound.split(" ")
@@ -178,6 +179,12 @@ def get_recommendation_and_prediction_from_text(
     <br/>
     {recs}
     """
+
+
+def get_v3_model():
+    MODEL_PATH = Path("./building_ml_powered_apps/models/model_3.pkl")
+    clf = joblib.load(MODEL_PATH)
+    return clf
 
 
 if __name__ == "__main__":
