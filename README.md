@@ -73,8 +73,8 @@ Interesting [hacker news article](https://news.ycombinator.com/item?id=34971883)
 
 For the original "davinci" models (now 3 generations behind if you count Instruct, ChatGPT, and upcoming DV"), OpenAI recommends "Aim for at least ~500 examples" as a starting point for fine-tuning
 
-Q: How do you monitor and debug models?
-A: When your engineering team builds great tooling, monitoring and
+How do you monitor and debug models?
+> When your engineering team builds great tooling, monitoring and
 debugging get much easier. Stitch Fix has built an internal tool that takes
 in a modeling pipeline and creates a Docker container, validates arguments
 and return types, exposes the inference pipeline as an API, deploys it on
@@ -82,12 +82,13 @@ our infrastructure, and builds a dashboard on top of it. This tooling allows
 data scientists to directly fix any errors that happen during or after
 deployment.
 
-Q: How do you deploy new model versions?
-A: In addition, data scientists run experiments by using a custom-built A/B
+How do you deploy new model versions?
+> In addition, data scientists run experiments by using a custom-built A/B
 testing service that allows them to define granular parameters. They then
 analyze test results, and if they are deemed conclusive by the team, they
 deploy the new version themselves.
-When it comes to deployment, we use a system similar to canary
+>
+> When it comes to deployment, we use a system similar to canary
 development where we start by deploying the new version to one instance
 and progressively update instances while monitoring performance. Data
 scientists have access to a dashboard that shows the number of instances
