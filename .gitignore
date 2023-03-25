@@ -7,7 +7,11 @@
 cov_html/
 
 # Reference examples
-# ml-powered-applications/
+derivatives-with-python/**/*.xlsx
+derivatives-with-python/**/*.h5
+derivatives-with-python/**/*.csv
+financial-analyst-course-2023/*.xlsm
+ml-powered-applications/
 
 # Locally build models
 building_ml_powered_apps/models/
