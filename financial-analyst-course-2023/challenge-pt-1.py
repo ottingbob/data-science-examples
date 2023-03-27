@@ -1,5 +1,7 @@
 import calendar
 import operator
+import os
+import re
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
@@ -17,15 +19,75 @@ sns.set()
 
 class TermColors:
     HEADER = "\033[95m"
-    OKBLUE = "\033[94m"
+    OKBLUE = "\033[34m"
+    OKWHITE = "\033[37m"
     OKCYAN = "\033[96m"
-    OKGREEN = "\033[92m"
+    # OKGREEN = "\033[92m"
+    OKGREEN = "\033[32m"
     WARNING = "\033[93m"
     # FAIL = "\033[91m"
     FAIL = "\033[31m"
     ENDC = "\033[0m"
     BOLD = "\033[1m"
     UNDERLINE = "\033[4m"
+
+    @classmethod
+    def df_header(cls, header_text: str) -> str:
+        return f"\n{cls.OKGREEN}{cls.BOLD}{header_text}{cls.ENDC}\n"
+
+    @classmethod
+    def print_df_with_colors(cls, text: str):
+        # Compile regex patterns
+        header_row = re.compile(r"^\\|\s+?(Calculation)")
+        profit_row = re.compile(r"^\\|\s+?(Monthly Gross Profit)")
+        cogs_row = re.compile(r"^\\|\s+?(Monthly Cogs)")
+        rev_row = re.compile(r"^\\|\s+?(Monthly Revenue)")
+        number_pattern = re.compile(r"([0-9]+\.[0-9]+)")
+        date_pattern = re.compile(r"([0-9]{2}/[0-9]{2}/[0-9]{4})")
+
+        def color_line(
+            line_text: str,
+            row_label: str,
+            color_format: str,
+            values_regex: re.Pattern = number_pattern,
+        ) -> str:
+            line_text = line_text.replace(row_label, color_format % (row_label))
+            for value in values_regex.findall(line_text):
+                line_text = line_text.replace(value, color_format % (value))
+            return line_text
+
+        # Apply regex patterns over lines
+        for idx, line_text in enumerate(text.splitlines()):
+            # exclude shape row
+            if line_text.startswith("shape:"):
+                continue
+
+            if header_label := header_row.search(line_text):
+                line_text = color_line(
+                    line_text,
+                    header_label.group(),
+                    f"{cls.OKBLUE}{cls.BOLD}%s{cls.ENDC}",
+                    date_pattern,
+                )
+            elif rev_label := rev_row.search(line_text):
+                line_text = color_line(
+                    line_text,
+                    rev_label.group(),
+                    f"{cls.OKWHITE}{cls.BOLD}%s{cls.ENDC}",
+                )
+            elif cogs_label := cogs_row.search(line_text):
+                line_text = color_line(
+                    line_text,
+                    cogs_label.group(),
+                    f"{cls.FAIL}{cls.BOLD}%s{cls.ENDC}",
+                )
+            elif profit_label := profit_row.search(line_text):
+                line_text = color_line(
+                    line_text,
+                    profit_label.group(),
+                    f"{cls.OKGREEN}{cls.BOLD}%s{cls.ENDC}",
+                )
+            print(line_text)
 
     @classmethod
     def _log_failure(cls, e: Exception) -> None:
@@ -41,10 +103,8 @@ class TermColors:
 
 
 # First start by getting data into a dataframe
-# course_challenge_file = Path(__name__)
-course_challenge_file = Path(
-    str(Path(__file__).parent) + "/93.+Course-challenge-before-solutions.xlsx"
-)
+data_file = "93.+Course-challenge-before-solutions.xlsx"
+course_challenge_file = Path(str(Path(__file__).parent) + os.sep + data_file)
 
 rev_col = "Revenue ($ 000')"
 cogs_col = "Cogs ($ 000')"
@@ -75,9 +135,15 @@ annual_sums = df.with_columns(pl.all()).sum()
 annual_revenue = annual_sums.select(pl.col(rev_col)).item()
 annual_cogs = annual_sums.select(pl.col(cogs_col)).item()
 annual_gross_profit = annual_revenue - annual_cogs
-print(f"Annual Revenue 2015: {annual_revenue:.2f}")
-print(f"Annual Cogs 2015: {annual_cogs:.2f}")
-print(f"Annual Gross Profit 2015: {annual_gross_profit:.2f}")
+print(
+    f"{TermColors.OKWHITE}{TermColors.BOLD}Annual Revenue 2015: {TermColors.OKGREEN}{annual_revenue:.2f}{TermColors.ENDC}"
+)
+print(
+    f"{TermColors.OKWHITE}{TermColors.BOLD}Annual Cogs 2015: {TermColors.FAIL}{annual_cogs:.2f}{TermColors.ENDC}"
+)
+print(
+    f"{TermColors.OKWHITE}{TermColors.BOLD}Annual Gross Profit 2015: {TermColors.OKGREEN}{annual_gross_profit:.2f}{TermColors.ENDC}"
+)
 
 # Task 2:
 # Please provide a breakdown that shows monthly Revenues and Cogs and calculate monthly Gross Profit.
@@ -97,6 +163,26 @@ monthly_rev_cogs = (
         .alias("Monthly Gross Profit")
     )
 )
+
+rev_cogs_by_month = (
+    monthly_rev_cogs
+    # Drop period and make period the column names
+    .select(pl.exclude("Period")).transpose(
+        # Include the header as a separate column
+        include_header=True,
+        # Add the periods as the column names
+        column_names=monthly_rev_cogs.with_columns(
+            pl.col("Period").cast(pl.Date).dt.strftime("%m/%d/%Y")
+        )
+        .get_columns()[0]
+        .to_list(),
+        header_name="Calculation",
+    )
+)
+print(
+    TermColors.df_header("Monthly development of Revenues & Cogs FY15:"),
+)
+TermColors.print_df_with_colors(str(rev_cogs_by_month)),
 
 
 def plot_monthly_rev_cogs(smooth_gross_profit: bool = False):
@@ -314,7 +400,6 @@ mrev_by_client_type = (
         .alias("Monthly Revenue Percentage"),
     )
 )
-print(mrev_by_client_type)
 client_types = sorted(
     mrev_by_client_type.select("Type of client").unique().get_columns()[0].to_list()
 )
@@ -418,7 +503,23 @@ def plot_client_type_monthly_revenue_stacked_bar_chart():
     plt.show()
 
 
-# Create a table with month col and client type row for:
-# 1) Revenue
-# 2) Percent of total revenues
-plot_client_type_monthly_revenue_stacked_bar_chart()
+# Plot stacked bar chart for client type as a percentage of total revenue
+# plot_client_type_monthly_revenue_stacked_bar_chart()
+
+client_monthly_revenues = mrev_by_client_type.pivot(
+    values=["Monthly Revenue", "Monthly Revenue Percentage"],
+    index="Type of client",
+    columns="Period",
+)
+# Table with month col and client type row for monthly revenue
+print(
+    TermColors.df_header("Client monthly revenues:"),
+    client_monthly_revenues.select(pl.exclude(r"^.*Percentage.*$")),
+)
+# Table with month col and client type row for percent of total revenues
+print(
+    TermColors.df_header("Client monthly revenue percentages:"),
+    client_monthly_revenues.select(
+        pl.exclude(r"^.*Revenue_[0-9]{2}/[0-9]{2}/[0-9]{4}$")
+    ),
+)
