@@ -49,7 +49,8 @@ cogs_col = "Cogs ($ 000')"
 pd_df = pd.read_excel(
     course_challenge_file,
     sheet_name="Data",
-    header=3,
+    # Rows start from `0` so `A` == `0`
+    header=2,
     usecols=range(1, 6),
     names=[
         "Period",
@@ -139,6 +140,7 @@ def plot_monthly_rev_cogs(smooth_gross_profit: bool = False):
 
 
 # plot_monthly_rev_cogs(smooth_gross_profit=False)
+# plot_monthly_rev_cogs(smooth_gross_profit=True)
 
 # Task 3:
 # Please provide a monthly breakdown of Revenues by type of client and calculate the percentage
@@ -167,26 +169,49 @@ monthly_rev_by_client = (
 )
 
 # Verify that each client has 12 entries
-# Looks like "Kaufland" only has 11 entries...
 clients = (
     monthly_rev_by_client.select("Client name").unique().get_columns()[0].to_list()
 )
+month_labels = monthly_rev_by_client.get_columns()[0].to_list()
 for c in clients:
     client_monthly_totals = monthly_rev_by_client.filter(
         pl.col("Client name") == c
     ).shape[0]
     with TermColors.with_failures():
-        assert (
-            monthly_rev_by_client.filter(pl.col("Client name") == c).shape[0] == 12
-        ), f"Client [{c}]: monthly totals [{client_monthly_totals}]"
-
+        # SWEET THIS HAS BEEN FIXED!!! I wasn't reading the first row of data from the spreadsheet
+        # when I was importing it =(
+        try:
+            assert (
+                monthly_rev_by_client.filter(pl.col("Client name") == c).shape[0] == 12
+            ), f"Client [{c}]: monthly totals [{client_monthly_totals}]"
+        # Add in the missing month label to the dataframe
+        except AssertionError as ae:
+            add_months = set(
+                monthly_rev_by_client.filter(pl.col("Client name") == c)
+                .select(["Period"])
+                .get_columns()[0]
+                .to_list()
+            ).symmetric_difference(set(month_labels))
+            for month in add_months:
+                monthly_rev_by_client = monthly_rev_by_client.extend(
+                    pl.from_dict(
+                        {
+                            "Period": month,
+                            "Client name": c,
+                            "Monthly Revenue": 0.0,
+                            "Total Monthly Revenue": 0.0,
+                            "Monthly Revenue Percentage": 0.0,
+                        }
+                    )
+                )
+            raise ae
 
 cmap = sns.color_palette("mako", len(clients))
 plt.figure(figsize=(10, 8))
 ax = plt.subplot(111)
+
 # The dictionary will either have the period as a string or the monthly percentage as a float
 previous_clients: List[Dict[str, Union[str, float]]] = []
-clients.remove("Kaufland")
 clients = sorted(clients)
 for color_idx, client_name in enumerate(clients):
     client_data = (
@@ -195,8 +220,6 @@ for color_idx, client_name in enumerate(clients):
         .to_dict()
     )
 
-    # print(client_data.to_dict())
-    # client_mrp = client_data["Monthly Revenue Percentage"]
     def compute_bottom_percentages(
         pc: List[Dict[str, Union[str, float]]]
     ) -> List[float]:
@@ -206,27 +229,22 @@ for color_idx, client_name in enumerate(clients):
             return pc[0]["Monthly Revenue Percentage"].to_list()
         else:
             from collections import Counter
-            from functools import reduce
-            from operator import add
 
-            # print(reduce(add, map(Counter, pc)))
-            # counter = Counter(pc[0])
             counter = Counter()
-
             for client in pc:
                 client_values = pl.from_dict(client).to_dicts()
-                # print(client_values)
                 client_values = {
                     cv_row["Period"]: cv_row["Monthly Revenue Percentage"]
                     for cv_row in client_values
                 }
                 counter.update(client_values)
-                # print(counter)
-                # print(pl.from_dict(client).to_dicts())
-                # print(
-                # reduce(add, map(lambda x: x["Monthly Revenue Percentage"], client))
-                # reduce(add, map(lambda x: type(x), client))
+
                 """"
+                from functools import reduce
+                from operator import add
+
+                # print(reduce(add, map(Counter, pc)))
+                TODO: This would be cool to try and implement
                 print(
                     reduce(
                         add,
@@ -234,20 +252,8 @@ for color_idx, client_name in enumerate(clients):
                     )
                 )
                 """
-            # print(list(counter.values()))
             return_values = list(counter.values())
             return return_values
-            # return counter.values()
-            # )
-            # counter.update
-            # print(client.to_dicts())
-
-            # print(pc[0]["Period"])
-
-            # counter.update
-            # print(client.to_dicts())
-
-            # print(pc[0]["Period"])
 
     ax.bar(
         client_data["Period"],
@@ -257,18 +263,22 @@ for color_idx, client_name in enumerate(clients):
     )
     previous_clients.append(client_data)
 
-print(
-    monthly_rev_by_client.filter(pl.col("Period") == "01/01/2015")
-    .select("Monthly Revenue Percentage")
-    .sum()
-)
-
-# Shrink current axis by 15%
+# Shrink current axis by 15% and put legend in the space
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * (1 - 0.15), box.height])
 ax.legend(clients, loc="center left", bbox_to_anchor=(1, 0.5))
-month_labels = monthly_rev_by_client.get_columns()[0].to_list()
-print(ax.get_yticks())
-print(ax.get_yticklabels())
+
+# Change y ticks to percentage values instead of decimals
+ytl = ax.get_yticklabels()
+new_ticks = []
+for tick in ytl:
+    t = tick
+    t._text = f"{float(t._text) * 100:0.0f}%"
+    new_ticks.append(t)
+
+ax.set_yticklabels(new_ticks)
 ax.set_xticklabels(month_labels, rotation=40, ha="right", fontsize=8)
+plt.title("Revenue breakdown per month stacked by client")
+plt.ylabel("Percent Allocation")
+plt.xlabel("Month")
 plt.show()
