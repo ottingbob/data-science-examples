@@ -5246,6 +5246,18 @@ files = [
 ]
 
 [[package]]
+name = "xlsx2csv"
+version = "0.8.1"
+description = "xlsx to csv converter"
+category = "main"
+optional = false
+python-versions = "*"
+files = [
+    {file = "xlsx2csv-0.8.1-py3-none-any.whl", hash = "sha256:6c36c0295d64f231570479e514d6163ce135af3c431a1705b073230bedaef9f2"},
+    {file = "xlsx2csv-0.8.1.tar.gz", hash = "sha256:7ecd6d2bc2426f2e432f4fdac12211e1976d3cbb65f9033e1eda65edda2045e3"},
+]
+
+[[package]]
 name = "xxhash"
 version = "3.2.0"
 description = "Python binding for xxHash"
@@ -5548,4 +5560,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "6f77e6ab3bddc4373b036f00ec035c06c03f9fac3e0342f92affb6a805f63428"
+content-hash = "4ab56efea78aac092b02cabc33adc74edaf4ff9bb2ddf4b5004cd44fbfaebabb"

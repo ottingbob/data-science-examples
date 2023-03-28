@@ -46,6 +46,7 @@ pyphen = "^0.13.2"
 lime = "^0.2.0.1"
 flask = "^2.2.3"
 seaborn = "^0.12.2"
+xlsx2csv = "^0.8.1"
 
 
 [tool.poetry.group.dev.dependencies]
