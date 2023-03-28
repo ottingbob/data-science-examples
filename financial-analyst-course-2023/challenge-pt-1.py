@@ -234,147 +234,6 @@ def plot_monthly_rev_cogs(smooth_gross_profit: bool = False):
 # Please provide a monthly breakdown of Revenues by type of client and calculate the percentage
 # incidence that each client type has on the company's Revenues.
 # Create a chart that shows the incidence on Revenues that different type of clients had throughout the year.
-monthly_rev_by_client = (
-    df.with_columns(pl.col("Period"))
-    .groupby("Period", "Client name")
-    .agg(
-        [
-            pl.col(rev_col).sum().alias("Monthly Revenue"),
-        ]
-    )
-    .with_columns(
-        pl.col("Period").cast(pl.Date).dt.strftime("%m/%d/%Y"),
-        pl.sum("Monthly Revenue").over(["Period"]).alias("Total Monthly Revenue"),
-    )
-    # TODO: We __might__ be able to put this in the previous `with_columns` statement but
-    # we would have to do it while defining the `Total Monthly Revenue` column in the `struct`
-    # / `apply` function so I chose to just split it into 2 for simplicity
-    .with_columns(
-        pl.struct([pl.col("Monthly Revenue"), pl.col("Total Monthly Revenue")])
-        .apply(lambda x: x["Monthly Revenue"] / x["Total Monthly Revenue"])
-        .alias("Monthly Revenue Percentage"),
-    )
-)
-
-# Verify that each client has 12 entries
-clients = (
-    monthly_rev_by_client.select("Client name").unique().get_columns()[0].to_list()
-)
-month_labels = monthly_rev_by_client.get_columns()[0].to_list()
-for c in clients:
-    client_monthly_totals = monthly_rev_by_client.filter(
-        pl.col("Client name") == c
-    ).shape[0]
-    with TermColors.with_failures():
-        # SWEET THIS HAS BEEN FIXED!!! I wasn't reading the first row of data from the spreadsheet
-        # when I was importing it =(
-        try:
-            assert (
-                monthly_rev_by_client.filter(pl.col("Client name") == c).shape[0] == 12
-            ), f"Client [{c}]: monthly totals [{client_monthly_totals}]"
-        # Add in the missing month label to the dataframe
-        except AssertionError as ae:
-            add_months = set(
-                monthly_rev_by_client.filter(pl.col("Client name") == c)
-                .select(["Period"])
-                .get_columns()[0]
-                .to_list()
-            ).symmetric_difference(set(month_labels))
-            for month in add_months:
-                monthly_rev_by_client = monthly_rev_by_client.extend(
-                    pl.from_dict(
-                        {
-                            "Period": month,
-                            "Client name": c,
-                            "Monthly Revenue": 0.0,
-                            "Total Monthly Revenue": 0.0,
-                            "Monthly Revenue Percentage": 0.0,
-                        }
-                    )
-                )
-            raise ae
-
-
-def plot_client_monthly_revenue_stacked_bar_chart():
-    cmap = sns.color_palette("mako", len(clients))
-    plt.figure(figsize=(10, 8))
-    ax = plt.subplot(111)
-
-    # The dictionary will either have the period as a string or the monthly percentage as a float
-    previous_clients: List[Dict[str, Union[str, float]]] = []
-    sorted_clients = sorted(clients)
-    for color_idx, client_name in enumerate(sorted_clients):
-        client_data = (
-            monthly_rev_by_client.filter(pl.col("Client name") == client_name)
-            .select(["Period", "Monthly Revenue Percentage"])
-            .to_dict()
-        )
-
-        def compute_bottom_percentages(
-            pc: List[Dict[str, Union[str, float]]]
-        ) -> List[float]:
-            if len(pc) == 0:
-                return None
-            elif len(pc) == 1:
-                return pc[0]["Monthly Revenue Percentage"].to_list()
-            else:
-                from collections import Counter
-
-                counter = Counter()
-                for client in pc:
-                    client_values = pl.from_dict(client).to_dicts()
-                    client_values = {
-                        cv_row["Period"]: cv_row["Monthly Revenue Percentage"]
-                        for cv_row in client_values
-                    }
-                    counter.update(client_values)
-
-                    """"
-                    from functools import reduce
-                    from operator import add
-
-                    # print(reduce(add, map(Counter, pc)))
-                    TODO: This would be cool to try and implement
-                    print(
-                        reduce(
-                            add,
-                            map(lambda k: k["Monthly Revenue Percentage"], client_values),
-                        )
-                    )
-                    """
-                return_values = list(counter.values())
-                return return_values
-
-        ax.bar(
-            client_data["Period"],
-            client_data["Monthly Revenue Percentage"],
-            bottom=compute_bottom_percentages(previous_clients),
-            color=cmap[color_idx],
-        )
-        previous_clients.append(client_data)
-
-    # Shrink current axis by 15% and put legend in the space
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * (1 - 0.15), box.height])
-    ax.legend(clients, loc="center left", bbox_to_anchor=(1, 0.5))
-
-    # Change y ticks to percentage values instead of decimals
-    ytl = ax.get_yticklabels()
-    new_ticks = []
-    for tick in ytl:
-        t = tick
-        t._text = f"{float(t._text) * 100:0.0f}%"
-        new_ticks.append(t)
-
-    ax.set_yticklabels(new_ticks)
-    ax.set_xticklabels(month_labels, rotation=40, ha="right", fontsize=8)
-    plt.title("Revenue breakdown per month stacked by client")
-    plt.ylabel("Percent Allocation")
-    plt.xlabel("Month")
-    plt.show()
-
-
-# plot_client_monthly_revenue_stacked_bar_chart()
 
 # So what we are actually looking for is a stacked bar chart broken down by
 # different client types or the `Type of client` column
@@ -523,3 +382,263 @@ print(
         pl.exclude(r"^.*Revenue_[0-9]{2}/[0-9]{2}/[0-9]{4}$")
     ),
 )
+
+# Task 4:
+# Please provide a monthly breakdown of Revenues and Cogs by client and calculate which are the
+# most profitable client accounts.
+# Create a column chart that shows the development of GP% of Kaufland and Aldi.
+monthly_rev_by_client = (
+    df.with_columns(pl.col("Period"))
+    .groupby("Period", "Client name")
+    .agg(
+        [
+            pl.col(rev_col).sum().alias("Monthly Revenue"),
+            pl.col(cogs_col).sum().alias("Monthly Cost of Goods"),
+        ]
+    )
+    .with_columns(
+        pl.col("Period").cast(pl.Date).dt.strftime("%m/%d/%Y"),
+        pl.sum("Monthly Revenue").over(["Period"]).alias("Total Monthly Revenue"),
+    )
+    # TODO: We __might__ be able to put this in the previous `with_columns` statement but
+    # we would have to do it while defining the `Total Monthly Revenue` column in the `struct`
+    # / `apply` function so I chose to just split it into 2 for simplicity
+    .with_columns(
+        pl.struct([pl.col("Monthly Revenue"), pl.col("Total Monthly Revenue")])
+        .apply(lambda x: x["Monthly Revenue"] / x["Total Monthly Revenue"])
+        .alias("Monthly Revenue Percentage"),
+        pl.struct([pl.col("Monthly Revenue"), pl.col("Monthly Cost of Goods")])
+        .apply(lambda x: x["Monthly Revenue"] - x["Monthly Cost of Goods"])
+        .alias("Monthly Gross Profit"),
+    )
+    .with_columns(
+        pl.struct([pl.col("Monthly Revenue"), pl.col("Monthly Gross Profit")])
+        .apply(lambda x: x["Monthly Gross Profit"] / x["Monthly Revenue"])
+        .alias("Monthly Gross Profit %"),
+    )
+)
+
+# Verify that each client has 12 entries
+clients = (
+    monthly_rev_by_client.select("Client name").unique().get_columns()[0].to_list()
+)
+month_labels = monthly_rev_by_client.get_columns()[0].to_list()
+for c in clients:
+    client_monthly_totals = monthly_rev_by_client.filter(
+        pl.col("Client name") == c
+    ).shape[0]
+    with TermColors.with_failures():
+        # SWEET THIS HAS BEEN FIXED!!! I wasn't reading the first row of data from the spreadsheet
+        # when I was importing it =(
+        try:
+            assert (
+                monthly_rev_by_client.filter(pl.col("Client name") == c).shape[0] == 12
+            ), f"Client [{c}]: monthly totals [{client_monthly_totals}]"
+        # Add in the missing month label to the dataframe
+        except AssertionError as ae:
+            add_months = set(
+                monthly_rev_by_client.filter(pl.col("Client name") == c)
+                .select(["Period"])
+                .get_columns()[0]
+                .to_list()
+            ).symmetric_difference(set(month_labels))
+            for month in add_months:
+                monthly_rev_by_client = monthly_rev_by_client.extend(
+                    pl.from_dict(
+                        {
+                            "Period": month,
+                            "Client name": c,
+                            "Monthly Revenue": 0.0,
+                            "Total Monthly Revenue": 0.0,
+                            "Monthly Revenue Percentage": 0.0,
+                        }
+                    )
+                )
+            raise ae
+
+
+def plot_client_monthly_revenue_stacked_bar_chart():
+    cmap = sns.color_palette("mako", len(clients))
+    plt.figure(figsize=(10, 8))
+    ax = plt.subplot(111)
+
+    # The dictionary will either have the period as a string or the monthly percentage as a float
+    previous_clients: List[Dict[str, Union[str, float]]] = []
+    sorted_clients = sorted(clients)
+    for color_idx, client_name in enumerate(sorted_clients):
+        client_data = (
+            monthly_rev_by_client.filter(pl.col("Client name") == client_name)
+            .select(["Period", "Monthly Revenue Percentage"])
+            .to_dict()
+        )
+
+        def compute_bottom_percentages(
+            pc: List[Dict[str, Union[str, float]]]
+        ) -> List[float]:
+            if len(pc) == 0:
+                return None
+            elif len(pc) == 1:
+                return pc[0]["Monthly Revenue Percentage"].to_list()
+            else:
+                from collections import Counter
+
+                counter = Counter()
+                for client in pc:
+                    client_values = pl.from_dict(client).to_dicts()
+                    client_values = {
+                        cv_row["Period"]: cv_row["Monthly Revenue Percentage"]
+                        for cv_row in client_values
+                    }
+                    counter.update(client_values)
+
+                    """"
+                    from functools import reduce
+                    from operator import add
+
+                    # print(reduce(add, map(Counter, pc)))
+                    TODO: This would be cool to try and implement
+                    print(
+                        reduce(
+                            add,
+                            map(lambda k: k["Monthly Revenue Percentage"], client_values),
+                        )
+                    )
+                    """
+                return_values = list(counter.values())
+                return return_values
+
+        ax.bar(
+            client_data["Period"],
+            client_data["Monthly Revenue Percentage"],
+            bottom=compute_bottom_percentages(previous_clients),
+            color=cmap[color_idx],
+        )
+        previous_clients.append(client_data)
+
+    # Shrink current axis by 15% and put legend in the space
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * (1 - 0.15), box.height])
+    ax.legend(clients, loc="center left", bbox_to_anchor=(1, 0.5))
+
+    # Change y ticks to percentage values instead of decimals
+    ytl = ax.get_yticklabels()
+    new_ticks = []
+    for tick in ytl:
+        t = tick
+        t._text = f"{float(t._text) * 100:0.0f}%"
+        new_ticks.append(t)
+
+    ax.set_yticklabels(new_ticks)
+    ax.set_xticklabels(month_labels, rotation=40, ha="right", fontsize=8)
+    plt.title("Revenue breakdown per month stacked by client")
+    plt.ylabel("Percent Allocation")
+    plt.xlabel("Month")
+    plt.show()
+
+
+# plot_client_monthly_revenue_stacked_bar_chart()
+
+client_monthly_revenues = monthly_rev_by_client.pivot(
+    values=["Monthly Revenue"],
+    index="Client name",
+    columns="Period",
+)
+# Table with month col and client row for monthly revenue
+print(
+    TermColors.df_header("Client monthly revenues:"),
+    client_monthly_revenues.with_columns(
+        pl.sum(pl.exclude("Client name")).alias("Total Revenue")
+    ).sort("Total Revenue", descending=True),
+)
+
+client_monthly_cogs = monthly_rev_by_client.pivot(
+    values=["Monthly Cost of Goods"],
+    index="Client name",
+    columns="Period",
+)
+# Table with month col and client row for monthly cogs
+print(
+    TermColors.df_header("Client monthly cogs:"),
+    client_monthly_cogs.with_columns(
+        pl.sum(pl.exclude("Client name")).alias("Total Cogs")
+    ).sort("Total Cogs", descending=True),
+)
+
+client_monthly_gp = monthly_rev_by_client.pivot(
+    values=["Monthly Gross Profit"],
+    index="Client name",
+    columns="Period",
+)
+# Table with month col and client row for monthly gross profit
+print(
+    TermColors.df_header("Client monthly gross profits:"),
+    client_monthly_gp.with_columns(
+        pl.sum(pl.exclude("Client name")).alias("Total Gross Profits")
+    ).sort("Total Gross Profits", descending=True),
+)
+
+client_monthly_gpp = monthly_rev_by_client.pivot(
+    values=["Monthly Gross Profit %"],
+    index="Client name",
+    columns="Period",
+)
+# Table with month col and client row for monthly gross profit percent
+print(
+    TermColors.df_header("Client monthly gross profit percent:"),
+    client_monthly_gpp.with_columns(
+        pl.sum(pl.exclude("Client name"))
+        # Manually compute average cause I have NO clue how to do with the `mean` / `avg` functions
+        .apply(lambda x: x / (len(client_monthly_gpp.get_columns()) - 1)).alias(
+            "Total Gross Profit %"
+        )
+    ).sort("Total Gross Profit %", descending=True),
+)
+
+# Now finally plot the GP% of Kaufland & Aldi with a grouped bar chart
+clients = sorted(["Kaufland", "Aldi"])
+client_data = client_monthly_gpp.filter(pl.col("Client name").is_in(clients)).sort(
+    pl.col("Client name")
+)
+
+cmap = sns.color_palette("mako", len(clients))
+plt.figure(figsize=(10, 8))
+ax = plt.subplot(111)
+# width & multiplier are used to split up the bars in the graph
+width = 0.8
+for cidx, cd in enumerate(client_data.to_dicts()):
+    client_name = cd.get("Client name")
+    periods = [k for k in cd.keys() if k != "Client name"]
+    periods = (np.arange(len(periods)) * 2) - (width / len(clients))
+    data_dict = {client_name: [v for k, v in cd.items() if k != "Client name"]}
+    offset = width * cidx
+    rects = ax.bar(
+        x=periods + offset,
+        height=data_dict.get(client_name),
+        width=width,
+        label=client_name,
+        color=cmap[cidx],
+    )
+    ax.bar_label(
+        rects,
+        labels=[f"{label * 100:0.2f}%" for label in rects.datavalues],
+        padding=3,
+        fontsize=8,
+        fontweight="bold",
+    )
+
+# Change y ticks to percentage values instead of decimals and add more ticks
+percentages = np.arange(0, 0.55, 0.05)
+ax.set_yticks(percentages)
+ax.set_yticklabels([f"{p * 100:0.0f}%" for p in percentages])
+
+periods = client_data.select(pl.exclude("Client name")).columns
+period_spacing = np.arange(0, len(periods) * 2, 2)
+ax.set_xticks(period_spacing)
+ax.set_xticklabels(periods, rotation=40, ha="right", fontsize=8)
+
+plt.ylabel("Gross Profit %")
+plt.xlabel("Month")
+plt.title("GP% development - Kaufland & Aldi")
+plt.legend(clients, loc="lower left")
+
+plt.show()
