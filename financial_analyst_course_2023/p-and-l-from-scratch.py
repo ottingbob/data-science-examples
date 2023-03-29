@@ -10,7 +10,7 @@ import polars as pl
 # - how to organize data from three different layers
 # - how to build a P&L statement from scratch
 # - how to create a graphical representation of the company's P&L
-case_study_file = Path("financial-analyst-course-2023/case-study-data.xlsm")
+case_study_file = Path("financial_analyst_course_2023/case-study-data.xlsm")
 
 
 def read_fy_from_sheet(sheet_name: str) -> pl.DataFrame:

@@ -10,9 +10,9 @@ cov_html/
 derivatives-with-python/**/*.xlsx
 derivatives-with-python/**/*.h5
 derivatives-with-python/**/*.csv
-financial-analyst-course-2023/*.xlsm
-financial-analyst-course-2023/*.xlsx
-financial-analyst-course-2023/*.xlsx#
+financial_analyst_course_2023/*.xlsm
+financial_analyst_course_2023/*.xlsx
+financial_analyst_course_2023/*.xlsx#
 ml-powered-applications/
 
 # Locally build models

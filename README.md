@@ -25,7 +25,7 @@ Here are some of the included projects:
 	> This project is built from the Building Machine Leaning Powered Applications Going From Idea to Product Python book. Here is the related [github repo](https://github.com/hundredblocks/ml-powered-applications)
 - [derivatives-with-python/](https://github.com/ottingbob/data-science-examples/tree/main/derivatives-with-python)
 	> The following examples come from the Derivatives Analytics With Python book. Here is the related [github repo](https://github.com/yhilpisch/dawp/blob/master/python36)
-- [financial-analyst-course-2023/](https://github.com/ottingbob/data-science-examples/tree/main/financial-analyst-course-2023)
+- [financial_analyst_course_2023/](https://github.com/ottingbob/data-science-examples/tree/main/financial_analyst_course_2023)
 	> The following directory has examples for learning financial analysis based on [this Udemy course](https://www.udemy.com/course/the-complete-financial-analyst-course)
 	>
 	> The course is meant to work in excel but I have other plans...
