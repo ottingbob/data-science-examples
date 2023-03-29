@@ -5,6 +5,7 @@ from typing import Callable
 
 import pandas as pd
 import polars as pl
+from financial_analyst_course_2023.term_colors import TermColors
 
 # First start by getting data into a dataframe
 data_file = "106.+Exerxise-before.xlsx"
@@ -143,4 +144,4 @@ agg_df_for_pandl = (
     .sort("sort")
     .drop("sort")
 )
-print(agg_df_for_pandl)
+TermColors.print_pandl_with_colors(str(agg_df_for_pandl))
