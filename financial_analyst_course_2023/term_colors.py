@@ -1,6 +1,5 @@
 import re
 from contextlib import contextmanager
-from functools import partial
 from typing import Any, Dict, Tuple
 
 
@@ -9,10 +8,8 @@ class TermColors:
     OKBLUE = "\033[34m"
     OKWHITE = "\033[37m"
     OKCYAN = "\033[96m"
-    # OKGREEN = "\033[92m"
     OKGREEN = "\033[32m"
     WARNING = "\033[93m"
-    # FAIL = "\033[91m"
     FAIL = "\033[31m"
     ENDC = "\033[0m"
     BOLD = "\033[1m"
@@ -25,24 +22,16 @@ class TermColors:
     @classmethod
     def print_pandl_with_colors(cls, text: str):
         # Compile regex patterns
-        header_row = re.compile(r"^\\|\s+?(Mapping)")
         header_color = (f"{cls.OKBLUE}{cls.BOLD}%s{cls.ENDC}",)
-        profit_row = re.compile(r"^\\|\s+?(Gross Profit)")
         positive_color = (f"{cls.OKGREEN}{cls.BOLD}%s{cls.ENDC}",)
-        cogs_row = re.compile(r"^\\|\s+?(Cogs)")
         negative_color = (f"{cls.FAIL}{cls.BOLD}%s{cls.ENDC}",)
-        rev_row = re.compile(r"^\\|\s+?(Revenue)")
-        opex_row = re.compile(r"^\\|\s+?(Operating expenses)")
-        d_and_a_row = re.compile(r"^\\|\s+?(D&A)")
-        ebitda = re.compile(r"^\\|\s+?(EBITDA)")
-        ebit = re.compile(r"^\\|\s+?(EBIT)")
-        ebt = re.compile(r"^\\|\s+?(EBT)")
-        net_income_row = re.compile(r"^\\|\s+?(Net Income)")
-        taxes_row = re.compile(r"^\\|\s+?(Taxes)")
-        intex_row = re.compile(r"^\\|\s+?(Interest expenses)")
         number_pattern = re.compile(r"([0-9]+\.[0-9]+)")
         year_pattern = re.compile(r"([0-9]{4})")
 
+        def compile_label_regex(row_label: str) -> re.Pattern:
+            return re.compile(r"^\\|\s+?(%s)" % row_label)
+
+        # Create a label regex color map
         def create_lrcm(
             row_regex: re.Pattern, row_color: Tuple[str], value_pattern: re.Pattern
         ) -> Dict[str, Any]:
@@ -52,26 +41,33 @@ class TermColors:
                 "value_pattern": value_pattern,
             }
 
-        positive_number_lrcm = partial(
-            create_lrcm, row_color=positive_color, value_pattern=number_pattern
-        )
-        negative_number_lrcm = partial(
-            create_lrcm, row_color=negative_color, value_pattern=number_pattern
-        )
+        def positive_number_lrcm(row_label: str):
+            return create_lrcm(
+                row_regex=compile_label_regex(row_label),
+                row_color=positive_color,
+                value_pattern=number_pattern,
+            )
+
+        def negative_number_lrcm(row_label: str):
+            return create_lrcm(
+                row_regex=compile_label_regex(row_label),
+                row_color=negative_color,
+                value_pattern=number_pattern,
+            )
 
         label_regex_color_map = [
-            create_lrcm(header_row, header_color, year_pattern),
-            positive_number_lrcm(rev_row),
-            positive_number_lrcm(profit_row),
-            positive_number_lrcm(ebitda),
-            positive_number_lrcm(ebit),
-            positive_number_lrcm(ebt),
-            positive_number_lrcm(net_income_row),
-            negative_number_lrcm(cogs_row),
-            negative_number_lrcm(opex_row),
-            negative_number_lrcm(intex_row),
-            negative_number_lrcm(d_and_a_row),
-            negative_number_lrcm(taxes_row),
+            create_lrcm(compile_label_regex("Mapping"), header_color, year_pattern),
+            positive_number_lrcm("Revenue"),
+            positive_number_lrcm("Gross Profit"),
+            positive_number_lrcm("EBITDA"),
+            positive_number_lrcm("EBIT"),
+            positive_number_lrcm("EBT"),
+            positive_number_lrcm("Net Income"),
+            negative_number_lrcm("Cogs"),
+            negative_number_lrcm("Operating expenses"),
+            negative_number_lrcm("Interest expenses"),
+            negative_number_lrcm("D&A"),
+            negative_number_lrcm("Taxes"),
         ]
 
         def color_line(
@@ -100,33 +96,6 @@ class TermColors:
                         lrcm["value_pattern"],
                     )
                     break
-            """
-            if header_label := header_row.search(line_text):
-                line_text = color_line(
-                    line_text,
-                    header_label.group(),
-                    f"{cls.OKBLUE}{cls.BOLD}%s{cls.ENDC}",
-                    year_pattern,
-                )
-            elif rev_label := rev_row.search(line_text):
-                line_text = color_line(
-                    line_text,
-                    rev_label.group(),
-                    f"{cls.OKWHITE}{cls.BOLD}%s{cls.ENDC}",
-                )
-            elif cogs_label := cogs_row.search(line_text):
-                line_text = color_line(
-                    line_text,
-                    cogs_label.group(),
-                    f"{cls.FAIL}{cls.BOLD}%s{cls.ENDC}",
-                )
-            elif profit_label := profit_row.search(line_text):
-                line_text = color_line(
-                    line_text,
-                    profit_label.group(),
-                    f"{cls.OKGREEN}{cls.BOLD}%s{cls.ENDC}",
-                )
-            """
             print(line_text)
 
     @classmethod
