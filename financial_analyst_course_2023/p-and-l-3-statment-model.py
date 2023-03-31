@@ -145,3 +145,7 @@ agg_df_for_pandl = (
     .drop("sort")
 )
 TermColors.print_pandl_with_colors(str(agg_df_for_pandl))
+
+# TODO: Need to work on the Balance Sheet
+# TODO: Need to work on the Cash Flow Statement
+# TODO: Need to work on the Income Statement
