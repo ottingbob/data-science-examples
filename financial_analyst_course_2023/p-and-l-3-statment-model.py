@@ -144,6 +144,16 @@ agg_df_for_pandl = (
     .sort("sort")
     .drop("sort")
 )
+# Add in Var % columns for 14-15 & 15-16
+agg_df_for_pandl = agg_df_for_pandl.with_columns(
+    pl.struct([pl.col("2014"), pl.col("2015")])
+    .apply(lambda x: f"{((x['2015'] / x['2014']) - 1) * 100:0.2f}%")
+    .alias("Var % 14-15"),
+    pl.struct([pl.col("2015"), pl.col("2016")])
+    .apply(lambda x: f"{((x['2016'] / x['2015']) - 1) * 100:0.2f}%")
+    .alias("Var % 15-16"),
+)
+
 TermColors.print_pandl_with_colors(str(agg_df_for_pandl))
 
 # TODO: Need to work on the Balance Sheet

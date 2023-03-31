@@ -6,6 +6,7 @@ from typing import Any, Dict, Tuple
 class TermColors:
     HEADER = "\033[95m"
     OKBLUE = "\033[34m"
+    OKYELLOW = "\033[33m"
     OKWHITE = "\033[37m"
     OKCYAN = "\033[96m"
     OKGREEN = "\033[32m"
@@ -24,8 +25,11 @@ class TermColors:
         # Compile regex patterns
         header_color = (f"{cls.OKBLUE}{cls.BOLD}%s{cls.ENDC}",)
         positive_color = (f"{cls.OKGREEN}{cls.BOLD}%s{cls.ENDC}",)
+        yellow_color = (f"{cls.OKYELLOW}{cls.BOLD}%s{cls.ENDC}",)
         negative_color = (f"{cls.FAIL}{cls.BOLD}%s{cls.ENDC}",)
-        number_pattern = re.compile(r"([0-9]+\.[0-9]+)")
+        # any_value_pattern = re.compile(r"┆\s+(\w+)\s+│")
+        any_value_pattern = re.compile(r"(?=([┆│]\s+([\w\-\s%]+)\s+[┆│]))")
+        number_pattern = re.compile(r"(\-?[0-9]+\.[0-9]+%?)")
         year_pattern = re.compile(r"([0-9]{4})")
 
         def compile_label_regex(row_label: str) -> re.Pattern:
@@ -56,7 +60,11 @@ class TermColors:
             )
 
         label_regex_color_map = [
-            create_lrcm(compile_label_regex("Mapping"), header_color, year_pattern),
+            create_lrcm(
+                compile_label_regex("Mapping"),
+                header_color,
+                any_value_pattern,
+            ),
             positive_number_lrcm("Revenue"),
             positive_number_lrcm("Gross Profit"),
             positive_number_lrcm("EBITDA"),
@@ -78,13 +86,36 @@ class TermColors:
         ) -> str:
             line_text = line_text.replace(row_label, color_format % (row_label))
             for value in values_regex.findall(line_text):
-                line_text = line_text.replace(value, color_format % (value))
+                # If it is a header value we need to get the last group value
+                if "Mapping" in row_label:
+                    line_text = line_text.replace(value[-1], color_format % (value[-1]))
+                # If it is a percentage we need to format the color conditionally
+                elif "%" in value:
+                    value_no_percent = float(value[: value.index("%")])
+                    if value_no_percent > 10.0:
+                        line_text = line_text.replace(
+                            value, positive_color[0] % (value)
+                        )
+                    elif value_no_percent > 0:
+                        line_text = line_text.replace(value, yellow_color[0] % (value))
+                    else:
+                        line_text = line_text.replace(
+                            value, negative_color[0] % (value)
+                        )
+                # Otherwise the formatting is straight forward on a single value group match
+                else:
+                    line_text = line_text.replace(value, color_format % (value))
             return line_text
 
         # Apply regex patterns over lines
-        for idx, line_text in enumerate(text.splitlines()):
+        # We create an iterator to iterate more than 1 line when we want to skip 2
+        text_idx_iter = iter(enumerate(text.splitlines()))
+        for idx, line_text in text_idx_iter:
             # exclude shape row
             if line_text.startswith("shape:"):
+                continue
+            elif line_text.startswith("│ ---"):
+                next(text_idx_iter)
                 continue
 
             for lrcm in label_regex_color_map:
