@@ -38,6 +38,20 @@ Here are some of the included projects:
 
 ### Installations
 
+##### gum
+
+[gum](https://github.com/charmbracelet/gum) is a library to make good-looking & interactive shell scripts. I use it on some of the scripts in here.
+
+I have included the installation for my system below:
+```bash
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://repo.charm.sh/apt/gpg.key | sudo gpg --dearmor -o /etc/apt/keyrings/charm.gpg
+echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | sudo tee /etc/apt/sources.list.d/charm.list
+sudo apt update && sudo apt install gum
+```
+
+##### problematic installations
+
 During the creation of some of the projects / examples I have encountered some issues when working with my recent version of python 11. For instance tensorflow will not be happy with you and as a result it's probably a good reason to start to learn pytorch.
 
 Anyways opinions aside (this is programming right??) here are some notes I have on some libraries having trouble with my setup.
