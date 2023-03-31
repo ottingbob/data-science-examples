@@ -1,7 +1,8 @@
+import math
 import operator
 import os
 from pathlib import Path
-from typing import Callable
+from typing import Callable, List
 
 import pandas as pd
 import polars as pl
@@ -153,9 +154,101 @@ agg_df_for_pandl = agg_df_for_pandl.with_columns(
     .apply(lambda x: f"{((x['2016'] / x['2015']) - 1) * 100:0.2f}%")
     .alias("Var % 15-16"),
 )
-
 TermColors.print_pandl_with_colors(str(agg_df_for_pandl))
 
-# TODO: Need to work on the Balance Sheet
+# Read in balance sheet for 2014 / 2015 / 2016
+data_file = "111.+Exercise+-+before.xlsx"
+course_challenge_file = Path(str(Path(__file__).parent) + os.sep + data_file)
+
+asset_line_items = [
+    "Trade Receivables",
+    "Inventory",
+    "PP&E",
+    "Cash",
+    "Other assets",
+]
+liabilities_line_items = [
+    "Trade Payables",
+    "Provisions",
+    "Financial Liabilities",
+    "Other liabilities",
+    "Equity",
+]
+
+
+def parse_balance_sheet(
+    sheet_name: str,
+    use_cols: List[int],
+    eoy_column_name: str,
+) -> pd.DataFrame:
+    pd_2014_bs = pd.read_excel(
+        course_challenge_file,
+        sheet_name=sheet_name,
+        header=3,
+        usecols=use_cols,
+        names=[
+            "Category",
+            "EOY Balance",
+        ],
+    ).dropna()
+    assets_2014 = (
+        pd_2014_bs.loc[pd_2014_bs["Category"].isin(asset_line_items)]
+        .drop_duplicates()
+        .reset_index()
+        .drop(["index"], axis=1)
+    )
+    assets_2014.loc[len(assets_2014.index)] = [
+        "Assets",
+        assets_2014["EOY Balance"].sum(),
+    ]
+
+    liabilities_2014 = (
+        pd_2014_bs.loc[pd_2014_bs["Category"].isin(liabilities_line_items)]
+        .drop_duplicates()
+        .reset_index()
+        .drop(["index"], axis=1)
+    )
+    liabilities_2014.loc[len(liabilities_2014.index)] = [
+        "Liabilities & Equity",
+        liabilities_2014["EOY Balance"].sum(),
+    ]
+
+    pd_2014_bs = (
+        pd.concat([assets_2014, liabilities_2014])
+        .reset_index()
+        .drop(["index"], axis=1)
+        .rename(columns={"EOY Balance": eoy_column_name})
+    )
+    return pd_2014_bs
+
+
+pd_2014_bs = parse_balance_sheet(
+    sheet_name="BS 2014", use_cols=[1, 3], eoy_column_name="31-Dec-2014"
+)
+
+pd_2015_bs = parse_balance_sheet(
+    sheet_name="BS 2015", use_cols=[1, 3], eoy_column_name="31-Dec-2015"
+)
+
+pd_2016_bs = parse_balance_sheet(
+    sheet_name="BS 2016", use_cols=[1, 4], eoy_column_name="31-Dec-2016"
+)
+
+pd_bs = pd_2014_bs.merge(pd_2015_bs, on="Category", how="inner")
+pd_bs = pd_bs.merge(pd_2016_bs, on="Category", how="inner")
+
+# Ensure assets and liabilities equal out to `0`
+assets = pd_bs.loc[pd_bs["Category"] == "Assets"].to_dict(orient="list")
+liabilities = pd_bs.loc[pd_bs["Category"] == "Liabilities & Equity"].to_dict(
+    orient="list"
+)
+del assets["Category"]
+del liabilities["Category"]
+assert assets.keys() == liabilities.keys()
+for k in assets.keys():
+    assert math.isclose(assets[k][0], liabilities[k][0])
+
+print(pd_bs)
+
 # TODO: Need to work on the Cash Flow Statement
 # TODO: Need to work on the Income Statement
