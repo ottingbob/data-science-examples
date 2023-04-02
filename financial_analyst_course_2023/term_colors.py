@@ -104,12 +104,13 @@ class TermColors:
                         )
                 # Otherwise the formatting is straight forward on a single value group match
                 else:
+                    # FIXME: Having an issue where this can clobber coloring if the value has been
+                    # found or is a substring of another earlier value
                     # Only replace last occurrence
                     # TODO: Unsure which is faster..?
                     # return (s[::-1].replace(old[::-1], new[::-1], count))[::-1]
-                    line_text = (color_format % (value)).join(
-                        line_text.rsplit(value, 1)
-                    )
+                    # line_text = (color_format % (value)).join(line_text.rsplit(value, 1))
+                    line_text = line_text.replace(value, color_format % (value))
             return line_text
 
         # Apply regex patterns over lines

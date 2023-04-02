@@ -250,10 +250,6 @@ for k in assets.keys():
 
 print(pd_bs)
 
-# Create Forecast values on P&L
-forecast_years = list(range(2017, 2022))
-print(forecast_years)
-
 
 def create_percentage_of_revenue_row(
     agg_df: pl.DataFrame, col_name: str, mapping_name: str
@@ -306,26 +302,47 @@ scenarios = [
 ]
 
 
-def some_calculation(values) -> float:
+def get_forecasted_revenue(values, year_col: str) -> float:
     calc_value = 0.0
     if values["Mapping"] == "Revenue":
-        calc_value = values["2016"] * (1 + 0.02)
-    elif values["Mapping"] == "Cogs":
-        calc_value = values["2016"] * (0.46)
-    elif values["Mapping"] == "Operating expenses":
-        calc_value = values["2016"] * (0.39)
+        calc_value = values[year_col] * (1 + 0.02)
     return round(calc_value, 2)
 
 
-TermColors.print_pandl_with_colors(
-    str(
-        agg_df_for_pandl.with_columns(
-            pl.struct([pl.col("Mapping"), pl.col("2016")])
-            .apply(lambda x: some_calculation(x))
-            .alias("2017")
-        )
+# TODO: update this method to take in the percentages from the scenarios
+def add_forecasted_year_col(agg_df: pl.DataFrame, next_year: str) -> pl.DataFrame:
+    previous_year = str(int(next_year) - 1)
+    agg_df = agg_df.with_columns(
+        pl.struct([pl.col("Mapping"), pl.col(previous_year)])
+        .apply(lambda x: get_forecasted_revenue(x, previous_year))
+        .alias(next_year)
     )
-)
+    # TODO: This is a little hacky but since we know that idx 1 == Cogs then we can just
+    # calculate this value, and update the dataframe with the new value column
+    #
+    # Update values for "Cogs" column for given year
+    next_year_col = agg_df.select([next_year]).get_columns()[0].to_list()
+    next_year_col[1] = round(next_year_col[0] * (0.46), 2)
+    # Update Gross profit based on the calculated values
+    next_year_col[2] = round(next_year_col[0] - next_year_col[1], 2)
+    # Update values for "Opex" column for given year
+    # We do the same thing knowing that `Opex` is at idx 3
+    next_year_col[3] = round(next_year_col[0] * (0.39), 2)
+    # Update EBITDA based on the calculated values
+    next_year_col[4] = round(next_year_col[2] - next_year_col[3], 2)
+
+    agg_df = agg_df.update(pl.DataFrame({next_year: next_year_col}))
+
+    return agg_df
+
+
+# Create Forecast values on P&L
+forecast_years = list(range(2017, 2022))
+for fy in forecast_years:
+    agg_df_for_pandl = add_forecasted_year_col(agg_df_for_pandl, str(fy))
+
+pl.Config.set_tbl_cols(len(agg_df_for_pandl.columns))
+TermColors.print_pandl_with_colors(str(agg_df_for_pandl))
 
 # TODO: Need to work on forecasting the Balance Sheet Statement
 # TODO: Need to work on forecasting the Cash Flow Statement
