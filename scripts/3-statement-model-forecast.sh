@@ -15,12 +15,13 @@ gum style \
 	# --width 80 \
 	# --value "2%"
 
-echo 'What rate to format growth at?' | gum style --foreground 212 
+echo 'What rate to forecast growth at?' | gum style --foreground 212
 
 response=$(printf "1%%\n2%%\n3%%\n4%%\nexit" | gum choose --limit 1 --cursor.foreground 212 --item.foreground 105)
 
-if [[ "${response}" == "exit" ]]; then
+if [[ "${response:=exit}" == "exit" ]]; then
 	exit
 fi
 
+# TODO: Make script accept an arg for the forecasted growth rate...
 python financial_analyst_course_2023/p-and-l-3-statment-model.py

@@ -2,7 +2,7 @@ import math
 import operator
 import os
 from pathlib import Path
-from typing import Callable, List
+from typing import Any, Callable, Dict, List
 
 import pandas as pd
 import polars as pl
@@ -250,5 +250,82 @@ for k in assets.keys():
 
 print(pd_bs)
 
-# TODO: Need to work on the Cash Flow Statement
-# TODO: Need to work on the Income Statement
+# Create Forecast values on P&L
+forecast_years = list(range(2017, 2022))
+print(forecast_years)
+
+
+def create_percentage_of_revenue_row(
+    agg_df: pl.DataFrame, col_name: str, mapping_name: str
+):
+    agg_dict = (
+        compute_agg_pl_row(
+            agg_df_for_pandl.select(pl.exclude(r"^Var.*$")),
+            mapping_name,
+            operator.truediv,
+            col_name,
+            "Revenue",
+        )
+        .filter(pl.col("Mapping") == mapping_name)
+        .to_dicts()[0]
+    )
+    for col_name in ["2014", "2015", "2016"]:
+        agg_dict[col_name] = f"{agg_dict[col_name] * 100 :0.2f}%"
+    return agg_dict
+
+
+# Getting the two expenses below as a % of revenues allows us to figure out what
+# a best case / base case / worst case scenario is for the metrics
+
+# We need a `Cogs as a % of Revenues` column
+print(
+    create_percentage_of_revenue_row(
+        agg_df_for_pandl,
+        "Cogs",
+        "Cogs as % of Revenues",
+    )
+)
+
+# We need a `Opex as a % of Revenues` column
+print(
+    create_percentage_of_revenue_row(
+        agg_df_for_pandl,
+        "Operating expenses",
+        "Opex as % of Revenues",
+    )
+)
+
+# Create the Scenarios table -- these percentages are based on the 2014-2016
+# data for the revenue % of each of the metrics respectively
+# For the cogs / opex since these are an expense technically the percentages
+# are negative values since they take away from gross revenue
+scenarios = [
+    {"name": "Best case", "rev_percentage": "3%", "cogs_p": "45%", "opex_p": "35%"},
+    {"name": "Base case", "rev_percentage": "2%", "cogs_p": "46%", "opex_p": "39%"},
+    {"name": "Worst case", "rev_percentage": "1%", "cogs_p": "47%", "opex_p": "41%"},
+]
+
+
+def some_calculation(values) -> float:
+    calc_value = 0.0
+    if values["Mapping"] == "Revenue":
+        calc_value = values["2016"] * (1 + 0.02)
+    elif values["Mapping"] == "Cogs":
+        calc_value = values["2016"] * (0.46)
+    elif values["Mapping"] == "Operating expenses":
+        calc_value = values["2016"] * (0.39)
+    return round(calc_value, 2)
+
+
+TermColors.print_pandl_with_colors(
+    str(
+        agg_df_for_pandl.with_columns(
+            pl.struct([pl.col("Mapping"), pl.col("2016")])
+            .apply(lambda x: some_calculation(x))
+            .alias("2017")
+        )
+    )
+)
+
+# TODO: Need to work on forecasting the Balance Sheet Statement
+# TODO: Need to work on forecasting the Cash Flow Statement
