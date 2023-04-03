@@ -362,6 +362,49 @@ TermColors.print_pandl_with_colors(str(agg_df_for_pandl))
 # Other liabilities % = other liabilities / Revenue
 
 
+def compute_fixed_asset_roll_forward(pl_agg_df: pl.DataFrame, bs_df: pd.DataFrame):
+    # We will use the following items in our FARF strategy:
+    # - Beginning PP&E
+    # - D&A (pushes down the value of PP&E - cost showing firms equipment is less valuable
+    #        after being used for a year)
+    # - Capex (Capital Expendatures - amount to buy new PP&E)
+    # - Ending PP&E
+    # We already have values for everything except for Capex for 2015 and then we can
+    # calculate 2016 and forecast the other years as well...
+    beginning_ppe_2015 = bs_df.loc[bs_df["Category"] == "PP&E", "31-Dec-2014"].values[0]
+    ending_ppe_2015 = bs_df.loc[bs_df["Category"] == "PP&E", "31-Dec-2015"].values[0]
+    da_2015 = pl_agg_df.filter(pl.col("Mapping") == "D&A").select("2015").item()
+    capex_2015 = ending_ppe_2015 - beginning_ppe_2015 + da_2015
+
+    beginning_ppe_2016 = bs_df.loc[bs_df["Category"] == "PP&E", "31-Dec-2015"].values[0]
+    ending_ppe_2016 = bs_df.loc[bs_df["Category"] == "PP&E", "31-Dec-2016"].values[0]
+    da_2016 = pl_agg_df.filter(pl.col("Mapping") == "D&A").select("2016").item()
+    capex_2016 = ending_ppe_2016 - beginning_ppe_2016 + da_2016
+    print(capex_2015, capex_2016)
+
+    # Calculate D&A as a % of Beginning PP&E over the period
+    da_2015_pct = round(da_2015 / beginning_ppe_2015 * 100, 2)
+    da_2016_pct = round(da_2016 / beginning_ppe_2016 * 100, 2)
+    average_da_pct = round(sum([da_2015_pct, da_2016_pct]) / 2, 2)
+    print(average_da_pct)
+    # Calculate Capex as a % of Beginning PP&E over the period
+    capex_2015_pct = round(capex_2015 / beginning_ppe_2015 * 100, 2)
+    capex_2016_pct = round(capex_2016 / beginning_ppe_2016 * 100, 2)
+    average_capex_pct = round(sum([capex_2015_pct, capex_2016_pct]) / 2, 2)
+    print(average_capex_pct)
+
+    # Now we can extrapolate PP&E over the forecast period with our D&A % and Capex % values
+    beginning_ppe = ending_ppe_2016
+    for year in range(2017, 2022):
+        da_curr_year = beginning_ppe * (average_da_pct / 100)
+        capex_curr_year = beginning_ppe * (average_capex_pct / 100)
+        ending_ppe = round(beginning_ppe - da_curr_year + capex_curr_year, 2)
+        print(ending_ppe)
+        beginning_ppe = ending_ppe
+
+    return
+
+
 def compute_balance_sheet_forecast(pl_agg_df: pl.DataFrame, bs_df: pd.DataFrame):
     revenues = (
         pl_agg_df.filter(pl.col("Mapping") == "Revenue")
@@ -424,7 +467,28 @@ def compute_balance_sheet_forecast(pl_agg_df: pl.DataFrame, bs_df: pd.DataFrame)
     print("Other Liabilities AVG %", other_liabilities_avg)
 
     # Now we add the calculated columns to the dataframe
-    print(pd_bs)
+    rev_2017 = pl_agg_df.filter(pl.col("Mapping") == "Revenue").select("2017").item()
+    cogs_2017 = pl_agg_df.filter(pl.col("Mapping") == "Cogs").select("2017").item()
+    bs_2017 = [0] * len(bs_df.index)
+    # Trade Receivables 2017 = DSO * Revenue 2017 / 360
+    bs_2017[0] = round(dso_avg * rev_2017 / 360, 2)
+    # Inventory 2017 = DIO * Cogs 2017 / 360
+    bs_2017[1] = round(dio_avg * cogs_2017 / 360, 2)
+    # Payables 2017 = DPO * Cogs 2017 / 360
+    bs_2017[6] = round(dpo_avg * cogs_2017 / 360, 2)
+    # Other assets 2017 = oa_avg * Revenue 2017
+    bs_2017[4] = round((other_assets_avg / 100) * rev_2017, 2)
+    # Other liabilities 2017 = ol_avg * Revenue 2017
+    bs_2017[9] = round((other_liabilities_avg / 100) * rev_2017, 2)
+    # We make the assumption `Provisions` will stay constant throughout the forecast
+    # period so we just take the 2016 value
+    bs_2017[7] = round(bs_df.iloc[7, bs_df.columns.get_loc("31-Dec-2016")], 2)
+
+    # Modeling PP&E we use a fixed asset roll-forward strategy
+    compute_fixed_asset_roll_forward(pl_agg_df, bs_df)
+
+    print(bs_df)
+    # print(bs_2017)
 
 
 compute_balance_sheet_forecast(agg_df_for_pandl, pd_bs)
