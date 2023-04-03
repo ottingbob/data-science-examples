@@ -154,7 +154,6 @@ agg_df_for_pandl = agg_df_for_pandl.with_columns(
     .apply(lambda x: f"{((x['2016'] / x['2015']) - 1) * 100:0.2f}%")
     .alias("Var % 15-16"),
 )
-TermColors.print_pandl_with_colors(str(agg_df_for_pandl))
 
 # Read in balance sheet for 2014 / 2015 / 2016
 data_file = "111.+Exercise+-+before.xlsx"
@@ -248,8 +247,6 @@ assert assets.keys() == liabilities.keys()
 for k in assets.keys():
     assert math.isclose(assets[k][0], liabilities[k][0])
 
-print(pd_bs)
-
 
 def create_percentage_of_revenue_row(
     agg_df: pl.DataFrame, col_name: str, mapping_name: str
@@ -272,7 +269,8 @@ def create_percentage_of_revenue_row(
 
 # Getting the two expenses below as a % of revenues allows us to figure out what
 # a best case / base case / worst case scenario is for the metrics
-
+#
+"""
 # We need a `Cogs as a % of Revenues` column
 print(
     create_percentage_of_revenue_row(
@@ -290,6 +288,7 @@ print(
         "Opex as % of Revenues",
     )
 )
+"""
 
 # Create the Scenarios table -- these percentages are based on the 2014-2016
 # data for the revenue % of each of the metrics respectively
@@ -344,5 +343,90 @@ for fy in forecast_years:
 pl.Config.set_tbl_cols(len(agg_df_for_pandl.columns))
 TermColors.print_pandl_with_colors(str(agg_df_for_pandl))
 
-# TODO: Need to work on forecasting the Balance Sheet Statement
+# Create the forecasting in the Balance Sheet Statement
+
+# We use the `Days` technique to forecast & model the following expenses:
+# - Trade Receivables
+# - Inventory
+# - Trade Payables
+# We use the `as a % of Revenues` technique to forecast & model the following expenses:
+# - Other assets
+# - Other liabilities
+# DSO: Days sales outstanding - avg # of days to collect revenue after a sale
+# DSO = Trade Receivables / Revenues * 360
+# DPO: Days payables outstanding - avg # of days to pay invoices (suppliers)
+# DPO = Trade Payables / Cogs * 360
+# DIO: Days inventory outstanding - avg # of days to turn inventory into sales
+# DIO = Inventory / Cogs * 360
+# Other assets % = other assets / Revenue
+# Other liabilities % = other liabilities / Revenue
+
+
+def compute_balance_sheet_forecast(pl_agg_df: pl.DataFrame, bs_df: pd.DataFrame):
+    revenues = (
+        pl_agg_df.filter(pl.col("Mapping") == "Revenue")
+        .select(["2014", "2015", "2016"])
+        .to_dicts()[0]
+    )
+    cogs = (
+        pl_agg_df.filter(pl.col("Mapping") == "Cogs")
+        .select(["2014", "2015", "2016"])
+        .to_dicts()[0]
+    )
+
+    def get_metric_avg(
+        pd_col_1: Dict[str, List[float]],
+        pl_col_2: Dict[str, float],
+        operation: Callable[[float, float], float],
+    ) -> List[float]:
+        metric_years = [
+            operation(pd_col_1["31-Dec-2014"][0], pl_col_2["2014"]),
+            operation(pd_col_1["31-Dec-2015"][0], pl_col_2["2015"]),
+            operation(pd_col_1["31-Dec-2016"][0], pl_col_2["2016"]),
+        ]
+        metric_avg = round(sum(metric_years) / len(metric_years), 2)
+        return metric_avg
+
+    # Now get the averages to calculate the forecasted years
+    dso_avg = get_metric_avg(
+        bs_df.loc[bs_df["Category"] == "Trade Receivables"].to_dict(orient="list"),
+        revenues,
+        lambda a, b: operator.truediv(a, b) * 360,
+    )
+    print("DSO_AVG", dso_avg)
+
+    dpo_avg = get_metric_avg(
+        bs_df.loc[bs_df["Category"] == "Trade Payables"].to_dict(orient="list"),
+        cogs,
+        lambda a, b: operator.truediv(a, b) * 360,
+    )
+    print("DPO_AVG", dpo_avg)
+
+    dio_avg = get_metric_avg(
+        bs_df.loc[bs_df["Category"] == "Inventory"].to_dict(orient="list"),
+        cogs,
+        lambda a, b: operator.truediv(a, b) * 360,
+    )
+    print("DIO_AVG", dio_avg)
+
+    other_assets_avg = get_metric_avg(
+        bs_df.loc[bs_df["Category"] == "Other assets"].to_dict(orient="list"),
+        revenues,
+        lambda a, b: operator.truediv(a, b) * 100,
+    )
+    print("Other Assets AVG %", other_assets_avg)
+
+    other_liabilities_avg = get_metric_avg(
+        bs_df.loc[bs_df["Category"] == "Other liabilities"].to_dict(orient="list"),
+        revenues,
+        lambda a, b: operator.truediv(a, b) * 100,
+    )
+    print("Other Liabilities AVG %", other_liabilities_avg)
+
+    # Now we add the calculated columns to the dataframe
+    print(pd_bs)
+
+
+compute_balance_sheet_forecast(agg_df_for_pandl, pd_bs)
+
 # TODO: Need to work on forecasting the Cash Flow Statement
