@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable, Dict, List
 
+import numpy_financial as npf
 import pandas as pd
 import polars as pl
 from financial_analyst_course_2023.term_colors import TermColors
@@ -399,10 +400,93 @@ def compute_fixed_asset_roll_forward(pl_agg_df: pl.DataFrame, bs_df: pd.DataFram
         da_curr_year = beginning_ppe * (average_da_pct / 100)
         capex_curr_year = beginning_ppe * (average_capex_pct / 100)
         ending_ppe = round(beginning_ppe - da_curr_year + capex_curr_year, 2)
-        print(ending_ppe)
+        print(f"{year} forecasted PP&E:", ending_ppe)
         beginning_ppe = ending_ppe
 
     return
+
+
+def compute_financial_liabilities_schedule(
+    pl_agg_df: pl.DataFrame, bs_df: pd.DataFrame
+):
+    # We need the following items:
+    # - Beginning debt
+    # - New debt
+    # - Principal repayments
+    # - Ending debt
+
+    # We assume no new debt as been added in 2015 / 2016
+    beginning_debt_2015 = bs_df.loc[
+        bs_df["Category"] == "Financial Liabilities", "31-Dec-2014"
+    ].values[0]
+    ending_debt_2015 = bs_df.loc[
+        bs_df["Category"] == "Financial Liabilities", "31-Dec-2015"
+    ].values[0]
+    principal_repayment_2015 = beginning_debt_2015 - ending_debt_2015
+    beginning_debt_2016 = ending_debt_2015
+    ending_debt_2016 = bs_df.loc[
+        bs_df["Category"] == "Financial Liabilities", "31-Dec-2016"
+    ].values[0]
+    principal_repayment_2016 = beginning_debt_2016 - ending_debt_2016
+    print(principal_repayment_2015, principal_repayment_2016)
+
+    # In 2017 company negotiated with lenders that debt needs to be paid in 10 years
+    # at a rate of 9%, and paid through constant annual payments
+    # We calculate the annual payment using the PMT function from numpy
+    num_periods = 10
+    annual_interest_rate = 0.09
+    loan_amount = ending_debt_2016
+    yearly_payment = (
+        npf.pmt(annual_interest_rate, num_periods, loan_amount, when="end") * -1
+    )
+    print(yearly_payment)
+
+    # Optionally print a table to understand interest expenses and principal payments
+    from collections import OrderedDict
+
+    payments_dict = OrderedDict(
+        {
+            k: []
+            for k in [
+                "Year",
+                "Payment",
+                "Interest Expense",
+                "Debt Repayment",
+                "Residual Debt",
+            ]
+        }
+    )
+    payments_dict["Residual Debt"].append(loan_amount)
+    for i in range(0, 10):
+        payments_dict["Year"].append(i + 1)
+        # We have a constant payment
+        payments_dict["Payment"].append(yearly_payment)
+        # Interest Expenses = Residual debt * interest rate
+        interest_expense = payments_dict.get("Residual Debt")[-1] * annual_interest_rate
+        payments_dict["Interest Expense"].append(interest_expense)
+        # Debt Repayment = Payment - Interest Expenses
+        debt_repayment = yearly_payment - interest_expense
+        payments_dict["Debt Repayment"].append(debt_repayment)
+        # Residual Debt = Outstanding Debt - Debt Repayment
+        residual_debt = payments_dict.get("Residual Debt")[-1] - debt_repayment
+        payments_dict["Residual Debt"].append(residual_debt)
+
+    payments_dict["Residual Debt"].pop(0)
+    debt_repayments = pl.DataFrame(payments_dict)
+    print(debt_repayments)
+
+    # Now use the debt repayments to understand the financial liabilities at every
+    # forecasted year. Since we are only doing 2017 - 2021 we only take the first
+    # 5 entries into consideration
+    # eoy_debt = loan_amount
+    for i in range(2017, 2022):
+        # year_debt_repayment = payments_dict["Debt Repayment"][i - 2017]
+        # eoy_debt -= year_debt_repayment
+        # print(f"{i} year end debt:", eoy_debt)
+        print(f"{i} year end debt:", payments_dict["Residual Debt"][i - 2017])
+
+    # TODO: Add interest expenses to forecasted P&L
+    # TODO: Add residual debt as financial liabilities to forecasted Balance Sheet
 
 
 def compute_balance_sheet_forecast(pl_agg_df: pl.DataFrame, bs_df: pd.DataFrame):
@@ -486,6 +570,9 @@ def compute_balance_sheet_forecast(pl_agg_df: pl.DataFrame, bs_df: pd.DataFrame)
 
     # Modeling PP&E we use a fixed asset roll-forward strategy
     compute_fixed_asset_roll_forward(pl_agg_df, bs_df)
+
+    # Modeling liabilities
+    compute_financial_liabilities_schedule(pl_agg_df, bs_df)
 
     print(bs_df)
     # print(bs_2017)
