@@ -1368,6 +1368,24 @@ ssh = ["paramiko"]
 tqdm = ["tqdm"]
 
 [[package]]
+name = "geoip2"
+version = "4.6.0"
+description = "MaxMind GeoIP2 API"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "geoip2-4.6.0-py2.py3-none-any.whl", hash = "sha256:745e2d7a665072690056f9566774727da89216c7858793f89804f6945f969714"},
+    {file = "geoip2-4.6.0.tar.gz", hash = "sha256:f0e80bce80b06bb38bd08bf4877d5a84e354e932095e6ccfb4d27bb598fa4f83"},
+]
+
+[package.dependencies]
+aiohttp = ">=3.6.2,<4.0.0"
+maxminddb = ">=2.2.0,<3.0.0"
+requests = ">=2.24.0,<3.0.0"
+urllib3 = ">=1.25.2,<2.0.0"
+
+[[package]]
 name = "gradio"
 version = "3.22.1"
 description = "Python library for easily interacting with trained machine learning models"
@@ -2111,6 +2129,17 @@ packaging = ">=20.0"
 pillow = ">=6.2.0"
 pyparsing = ">=2.3.1"
 python-dateutil = ">=2.7"
+
+[[package]]
+name = "maxminddb"
+version = "2.2.0"
+description = "Reader for the MaxMind DB format"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "maxminddb-2.2.0.tar.gz", hash = "sha256:e37707ec4fab115804670e0fb7aedb4b57075a8b6f80052bdc648d3c005184e5"},
+]
 
 [[package]]
 name = "mccabe"
@@ -3846,6 +3875,22 @@ ja = ["ipadic (>=1.0,<2.0)", "mecab-python3 (==1.0.5)"]
 ko = ["mecab-ko (==1.0.0)", "mecab-ko-dic (>=1.0,<2.0)"]
 
 [[package]]
+name = "scapy"
+version = "2.5.0"
+description = "Scapy: interactive packet manipulation tool"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
+files = [
+    {file = "scapy-2.5.0.tar.gz", hash = "sha256:5b260c2b754fd8d409ba83ee7aee294ecdbb2c235f9f78fe90bc11cb6e5debc2"},
+]
+
+[package.extras]
+basic = ["ipython"]
+complete = ["cryptography (>=2.0)", "ipython", "matplotlib", "pyx"]
+docs = ["sphinx (>=3.0.0)", "sphinx_rtd_theme (>=0.4.3)", "tox (>=3.0.0)"]
+
+[[package]]
 name = "scikit-image"
 version = "0.20.0"
 description = "Image processing in Python"
@@ -5560,4 +5605,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "4ab56efea78aac092b02cabc33adc74edaf4ff9bb2ddf4b5004cd44fbfaebabb"
+content-hash = "4721a921adb713ceeee89cedbf2d2fee421f8e5364e04a342316901153c40fa1"

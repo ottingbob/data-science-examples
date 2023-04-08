@@ -8,3 +8,6 @@ These are some scripts that showcase a single topic from a website / blog post:
 	> Quick and easy example of some dimensionality reduction algorithms included in sklearn
 - polars-string-manipulations.py
 	>	Example working with string columns in polars dataframes
+- visual-network-tracking.py
+	> Example working with Geo2IP data. This parses a wireshark pcap file to create a KMS (google keyhole markup language) file to visualize geographic data over google earth
+	> https://support.google.com/earth/answer/7365595?hl=en&co=GENIE.Platform%3DDesktop
