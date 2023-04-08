@@ -82,6 +82,22 @@ RuntimeError: Building llvmlite requires LLVM 10.0.x or 9.0.x, got '11.1.0'. Be 
 
 ### Resources
 
+An interesting thing to check out could be [this python profiler py-spy](https://github.com/benfred/py-spy) which allows you to profile and debug any running python program, even if it is serving production traffic
+
+Pretty good [diagrams](https://github.com/mingrammer/diagrams) in python
+
+[Face recognition API](https://github.com/ageitgey/face_recognition) in python
+
+Python Data Science December via [Reddit](https://www.reddit.com/r/Python/comments/ze7v3o/python_data_science_december/) or thru the [Medium Article](https://medium.com/python-point/python-data-science-december-ff4aa9e4d5e6)
+
+Deep learning [lessons](https://course.fast.ai/) from Fast AI
+
+[Python scanner tools](https://www.reddit.com/r/Python/comments/11ohb9e/python_cybersecurity_build_your_own_python_tools/) tutorials from reddit source. Gotta say this person is SUPER spammy on reddit but will judge whether the links are good...
+
+Interesting transaction manager called [pyWave](https://github.com/therealOri/pyWave)
+
+Tool called [Oxen](https://github.com/oxen-ai/oxen-release) for versioned datasets
+
 Interesting [hacker news article](https://news.ycombinator.com/item?id=34971883) talks about challenges they have with AI in development scenarios. It sounds like it is mostly frustrations due to deployment / infrastructure and rapid prototyping
 > We serve our models with FastAPI, containerize them, and then deploy them to our GKE clusters. Depending on the model, we choose different machines - some require GPUs, most are decent on CPU. We take models up or down based on usage, so we have cold starts unless otherwise specified by customers. We expose access to the model via a POST call through our cloud app. We track inputs and outputs, as we expect that people will become interested in fine tuning models based on their past usage.
 
