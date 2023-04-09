@@ -92,8 +92,6 @@ Python Data Science December via [Reddit](https://www.reddit.com/r/Python/commen
 
 Deep learning [lessons](https://course.fast.ai/) from Fast AI
 
-[Python scanner tools](https://www.reddit.com/r/Python/comments/11ohb9e/python_cybersecurity_build_your_own_python_tools/) tutorials from reddit source. Gotta say this person is SUPER spammy on reddit but will judge whether the links are good...
-
 Interesting transaction manager called [pyWave](https://github.com/therealOri/pyWave)
 
 Tool called [Oxen](https://github.com/oxen-ai/oxen-release) for versioned datasets
