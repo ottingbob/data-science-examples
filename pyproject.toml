@@ -51,6 +51,7 @@ seaborn = "^0.12.2"
 xlsx2csv = "^0.8.1"
 geoip2 = "^4.6.0"
 scapy = "^2.5.0"
+faker = "^18.4.0"
 
 
 [tool.poetry.group.dev.dependencies]
