@@ -52,7 +52,7 @@ xlsx2csv = "^0.8.1"
 geoip2 = "^4.6.0"
 scapy = "^2.5.0"
 faker = "^18.4.0"
-
+diagrams = "^0.23.3"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
@@ -66,12 +66,13 @@ ruff = "^0.0.261"
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+# TODO: I am not sure `python-lsp-server` is enforcing `ruff` configuration
 [tool.ruff]
 line-length = 88
 
 # Enable pycodestyle (`E`), Pyflakes (`F`), isort (`I001`) codes by default
 select = ["W", "E", "F", "I001"]
-ignore = []
+ignore = ["W503"]
 
 # Exclude a variety of commonly ignored directories
 exclude = [

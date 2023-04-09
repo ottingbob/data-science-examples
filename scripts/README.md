@@ -8,6 +8,9 @@ These are some scripts that showcase a single topic from a website / blog post:
 	> Quick and easy example of some dimensionality reduction algorithms included in sklearn
 - polars-string-manipulations.py
 	>	Example working with string columns in polars dataframes
+- ml-deployment-diagram.py
+	>	Example working with diagrams package and creating the following ML Deployment Diagram:
+	![ml_deployment_diagram](../assets/ml-diagram.png)
 - visual-network-tracking.py
 	> Example working with Geo2IP data. This parses a wireshark pcap file to create a KMS (google keyhole markup language) file to visualize geographic data over google earth
 	>
