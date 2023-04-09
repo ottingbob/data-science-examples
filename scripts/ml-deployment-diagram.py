@@ -26,7 +26,6 @@ with Diagram("ML Deployment Pipeline", show=True):
         data_api_deploy << metrics
     with Cluster("ML Application"):
         net = Ingress("ml.domain.com") >> Service("ml-svc")
-        # << Deployment("ml-deployment") << HPA("hpa")
         apps = [
             Pod("pod1"),
             Pod("pod2"),
