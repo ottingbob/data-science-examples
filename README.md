@@ -86,8 +86,6 @@ RuntimeError: Building llvmlite requires LLVM 10.0.x or 9.0.x, got '11.1.0'. Be 
 
 An interesting thing to check out could be [this python profiler py-spy](https://github.com/benfred/py-spy) which allows you to profile and debug any running python program, even if it is serving production traffic
 
-Pretty good [diagrams](https://github.com/mingrammer/diagrams) in python
-
 [Face recognition API](https://github.com/ageitgey/face_recognition) in python
 
 Deep learning [lessons](https://course.fast.ai/) from Fast AI
