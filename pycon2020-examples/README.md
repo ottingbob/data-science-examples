@@ -1,7 +1,5 @@
 ### PyCon 2020 Examples
 
-The following examples are from the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt)
-
 The following examples are from a [pycon2020](https://www.youtube.com/watch?v=vyOgWhwUmec)
 presentation with the corresponding [github](https://github.com/keithgalli/pycon2020):
 > All examples are in the pycon2020-examples/ directory

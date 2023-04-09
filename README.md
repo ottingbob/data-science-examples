@@ -31,6 +31,8 @@ Here are some of the included projects:
 	> The course is meant to work in excel but I have other plans...
 - [hugging_face_course/](https://github.com/ottingbob/data-science-examples/tree/main/hugging_face_course)
 	> This project follows the [hugging face course](https://huggingface.co/course/chapter0/1?fw=pt) which provides building and tweaking various types of NLP pipelines. It also exposes a little bit of [gradio](https://gradio.app/) so you can have a way to showcase your models!
+- [python_data_science_december_2022/](https://github.com/ottingbob/data-science-examples/tree/main/python_data_science_december_2022)
+	> These are a collection of activities that do some basic data analysis on a wide variety of sources
 - [pycon2020-examples/](https://github.com/ottingbob/data-science-examples/tree/main/pycon2020-examples)
 	> This collection of scripts is based off [Keith Galli's](https://github.com/keithgalli) awesome [PyCon2020 NLP youtube video](https://www.youtube.com/watch?v=vyOgWhwUmec). It runs through various NLP techniques and serves as a good introduction with some guidance for starting off your ML journey
 - [scripts/](https://github.com/ottingbob/data-science-examples/tree/main/scripts)
@@ -87,8 +89,6 @@ An interesting thing to check out could be [this python profiler py-spy](https:/
 Pretty good [diagrams](https://github.com/mingrammer/diagrams) in python
 
 [Face recognition API](https://github.com/ageitgey/face_recognition) in python
-
-Python Data Science December via [Reddit](https://www.reddit.com/r/Python/comments/ze7v3o/python_data_science_december/) or thru the [Medium Article](https://medium.com/python-point/python-data-science-december-ff4aa9e4d5e6)
 
 Deep learning [lessons](https://course.fast.ai/) from Fast AI
 
