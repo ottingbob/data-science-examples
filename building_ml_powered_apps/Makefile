@@ -1,7 +1,8 @@
 BUILDING_ML_POWERED_APPS_PROJECT_NAME := building_ml_powered_apps
 PROJECT_NAMES += $(BUILDING_ML_POWERED_APPS_PROJECT_NAME)
 
-TEST_BASE := poetry run pytest $(BUILDING_ML_POWERED_APPS_PATH) -rs
+TEST_BASE := poetry run pytest -rs
+TEST_PACKAGE := $(BUILDING_ML_POWERED_APPS_PATH)
 COVERAGE_OPTS := --cov --cov-config=./pyproject.toml
 
 ## @section General
@@ -29,7 +30,7 @@ $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).run:
 .PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test
 ## Run related tests in test directory
 $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test:
-	$(TEST_BASE) $(COVERAGE_OPTS)
+	$(TEST_BASE) $(TEST_PACKAGE) $(COVERAGE_OPTS)
 
 .PHONY: $(BUILDING_ML_POWERED_APPS_PROJECT_NAME).test-file
 ## Run related tests in specific file
