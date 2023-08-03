@@ -16,7 +16,8 @@ packages = [
 serve = "app.internal.__main__:serve"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+# python = "^3.11"
+python = "~3.11"
 torch = "^1.13.1"
 numpy = "^1.24.2"
 spacy = "^3.5.0"
@@ -53,6 +54,8 @@ geoip2 = "^4.6.0"
 scapy = "^2.5.0"
 faker = "^18.4.0"
 diagrams = "^0.23.3"
+tensorflow = "^2.13.0"
+tensorflow-datasets = "^4.9.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
