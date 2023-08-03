@@ -40,4 +40,5 @@ hugging_face_course/drugsComTest_raw.tsv
 hugging_face_course/drugsComTrain_raw.tsv
 hugging_face_course/drugsCom_raw.zip
 GeoLite2-City_20230407/
-
+complete_data_science_bootcamp/downloads
+complete_data_science_bootcamp/mnist
