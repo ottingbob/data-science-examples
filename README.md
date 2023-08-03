@@ -23,6 +23,8 @@ Here is a demonstration of how it works for the related `building_ml_powered_app
 Here are some of the included projects:
 - [building_ml_powered_apps/](https://github.com/ottingbob/data-science-examples/tree/main/building_ml_powered_apps)
 	> This project is built from the Building Machine Leaning Powered Applications Going From Idea to Product Python book. Here is the related [github repo](https://github.com/hundredblocks/ml-powered-applications)
+- [complete_data_science_bootcamp/](/complete_data_science_bootcamp)
+	> The following directory has examples for learning data science / machine learning based on [this Udemy course](https://www.udemy.com/course/the-data-science-course-complete-data-science-bootcamp)
 - [derivatives-with-python/](https://github.com/ottingbob/data-science-examples/tree/main/derivatives-with-python)
 	> The following examples come from the Derivatives Analytics With Python book. Here is the related [github repo](https://github.com/yhilpisch/dawp/blob/master/python36)
 - [financial_analyst_course_2023/](https://github.com/ottingbob/data-science-examples/tree/main/financial_analyst_course_2023)
@@ -83,6 +85,8 @@ RuntimeError: Building llvmlite requires LLVM 10.0.x or 9.0.x, got '11.1.0'. Be 
 ```
 
 ### Resources
+
+Here is a [pandas cookbook](https://github.com/jvns/pandas-cookbook) that would be good for adding some examples from into this repo...
 
 An interesting thing to check out could be [this python profiler py-spy](https://github.com/benfred/py-spy) which allows you to profile and debug any running python program, even if it is serving production traffic
 
