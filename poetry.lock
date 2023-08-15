@@ -316,6 +316,60 @@ pycodestyle = ">=2.8.0"
 toml = "*"
 
 [[package]]
+name = "banditpam"
+version = "4.0.2"
+description = "BanditPAM: A state-of-the-art,             high-performance k-medoids algorithm."
+optional = false
+python-versions = "*"
+files = [
+    {file = "banditpam-4.0.2-cp310-cp310-macosx_10_14_universal2.whl", hash = "sha256:991d17932576a76117306262573194f45e084fcf4aa91b05addd0f2b313c0b72"},
+    {file = "banditpam-4.0.2-cp310-cp310-macosx_10_14_x86_64.whl", hash = "sha256:00d0dab606edca3f310cc7cdf6309d063edb8590e98b49032561f46f9a2a8ff3"},
+    {file = "banditpam-4.0.2-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:3ecfd28acf6584c385170ef8c7ad4a0c72ff66d2cbce597a5a90770f5df01fb1"},
+    {file = "banditpam-4.0.2-cp310-cp310-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:573adb8bc0fe5497049e41b4c03946acc24c709d510b6cc1f4f2976f0b8cb185"},
+    {file = "banditpam-4.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3124c93446eec2625bed77cd923a7bf20e66bd1db01f1670b1e9e5277c4e3af5"},
+    {file = "banditpam-4.0.2-cp310-cp310-musllinux_1_1_i686.whl", hash = "sha256:11e4ee22b31972c5d6576129966760253b829ea191eff5c9efb872e30bb71eb3"},
+    {file = "banditpam-4.0.2-cp310-cp310-musllinux_1_1_x86_64.whl", hash = "sha256:20e43e0a80b7a7803696698bee4001b79eb81dff2eb6368145c12d52d12e9479"},
+    {file = "banditpam-4.0.2-cp311-cp311-macosx_10_14_universal2.whl", hash = "sha256:1b6d254b8ac00944a28df4328a823d22c946134285c74e191ca92c69cd60efae"},
+    {file = "banditpam-4.0.2-cp311-cp311-macosx_10_14_x86_64.whl", hash = "sha256:52f16771508fd4d8c986257e5085b3f576b0ffe94a99cdfc5e34cbccb77d97ea"},
+    {file = "banditpam-4.0.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:d98e482dd39c1ab03a1f6498333faa91bb70f037bac69d52cdb6d0c9e9270fd3"},
+    {file = "banditpam-4.0.2-cp311-cp311-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f63e427995389911f67c29c3bcabeddc28a1c875cae4f3ace8d41a645ce94b49"},
+    {file = "banditpam-4.0.2-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d4478f7769ab7f9e241c8dfc8acdf17b7eeb9b69f2cfb2728ab91296fee347bc"},
+    {file = "banditpam-4.0.2-cp311-cp311-musllinux_1_1_i686.whl", hash = "sha256:ddb7a7c9f3fb0063df891cce178f323357460f1a30b6d6c224f63f358a198b4d"},
+    {file = "banditpam-4.0.2-cp311-cp311-musllinux_1_1_x86_64.whl", hash = "sha256:87a7dace5229077918053f543a52a40c64c535e9a92e5e5b1413e5c274885aa2"},
+    {file = "banditpam-4.0.2-cp36-cp36m-macosx_10_14_x86_64.whl", hash = "sha256:8c17c1c08ebac88d99a1a9d97e47b61a6ad7bc110afa3c1247521c047b3acd1d"},
+    {file = "banditpam-4.0.2-cp36-cp36m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:878455274818e5db351312af0d743e987e6befd9fc5e1df33c32b48ff2051c79"},
+    {file = "banditpam-4.0.2-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:38be160815831f4933028676085ed072bcbd29122e089bef9d4d0d2c846d0030"},
+    {file = "banditpam-4.0.2-cp36-cp36m-musllinux_1_1_i686.whl", hash = "sha256:01dfc7bc251ee798a5d1431016ff89810cb0382a5494a4ec3d55bbfb7728f323"},
+    {file = "banditpam-4.0.2-cp36-cp36m-musllinux_1_1_x86_64.whl", hash = "sha256:cf0e1a8544478b8fad015010afba4deafcdc43bc8d9db60f40431b987e47b088"},
+    {file = "banditpam-4.0.2-cp37-cp37m-macosx_10_14_x86_64.whl", hash = "sha256:c2168c88bafbb20c415d2b6eb232d5011f9e5afe4c7420515db70077d1143359"},
+    {file = "banditpam-4.0.2-cp37-cp37m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f12cef72430265b97bf4cf57cb43f0ace71b91f7495a5afafe3df6ef589e5caf"},
+    {file = "banditpam-4.0.2-cp37-cp37m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:85c4d0fa235727be6298188367193baeb4f7414a8b029183594646a554991546"},
+    {file = "banditpam-4.0.2-cp37-cp37m-musllinux_1_1_i686.whl", hash = "sha256:11b65994412683f1dd9503ea04c69cb8f5f22f19c374d37b3566e5341471a558"},
+    {file = "banditpam-4.0.2-cp37-cp37m-musllinux_1_1_x86_64.whl", hash = "sha256:ae50335188495c2b3d5f20e685d9ce1267dfa08a780a0e2097bbea7ef5030459"},
+    {file = "banditpam-4.0.2-cp38-cp38-macosx_10_14_universal2.whl", hash = "sha256:37a2be963ef7bacfbf579722a5d6e316cb8020b171518d3dec29a1ad0f7b1123"},
+    {file = "banditpam-4.0.2-cp38-cp38-macosx_10_14_x86_64.whl", hash = "sha256:1acf9c5ba3dcdfad3c694a73d9fd1285cbd52a5a2aa573a58079ca3d81af4abf"},
+    {file = "banditpam-4.0.2-cp38-cp38-macosx_11_0_arm64.whl", hash = "sha256:970539baed749da23a3269a867b5e26496dfd04fb61df456a82ff542971579a1"},
+    {file = "banditpam-4.0.2-cp38-cp38-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:8eff5d4dda3e6f9371312708d051dd7f0682392f9f95fcbe02f622d39d484f86"},
+    {file = "banditpam-4.0.2-cp38-cp38-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:e06088b2c104725f90d159ac055b812b5be824a4daf7131b111dc80aee556341"},
+    {file = "banditpam-4.0.2-cp38-cp38-musllinux_1_1_i686.whl", hash = "sha256:aede62430f2166c5ac3b52094604296a34386532c9cc5cb3343ddb078fa46e17"},
+    {file = "banditpam-4.0.2-cp38-cp38-musllinux_1_1_x86_64.whl", hash = "sha256:431bb3b68faff2933d1018ffcb140c4b48260b21ccf05475680b8fd862ec8c01"},
+    {file = "banditpam-4.0.2-cp39-cp39-macosx_10_14_universal2.whl", hash = "sha256:e1c02ac55722047335883b2365a4a5b591ecae4a088bbc3aabfbdc2906dd7b27"},
+    {file = "banditpam-4.0.2-cp39-cp39-macosx_10_14_x86_64.whl", hash = "sha256:0cc0bb4cde2f7bb761ac563c25e5ffca5dbb2196a97f4bcdb36fb575c7b20c6b"},
+    {file = "banditpam-4.0.2-cp39-cp39-macosx_11_0_arm64.whl", hash = "sha256:472107d91274b9a24557288fb8037c4c509f94fbdebb99b9236fd621d9cc546d"},
+    {file = "banditpam-4.0.2-cp39-cp39-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:79fb61038e90b711feaf0ac7c1fa917fb62fc54f5c9446fb35883d545e1915ea"},
+    {file = "banditpam-4.0.2-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:cb71880fd96938b87326bc34e6059ed463d08e7724dc0b723619779d7eb431a8"},
+    {file = "banditpam-4.0.2-cp39-cp39-musllinux_1_1_i686.whl", hash = "sha256:56e7d79318d6e8488166617c4b00d67cbb64ae5f5fdfd64caaced129dd1b5eb6"},
+    {file = "banditpam-4.0.2-cp39-cp39-musllinux_1_1_x86_64.whl", hash = "sha256:02e890047b63b389f7c1f44a1268b2bee08dfe4b4d9162f1f7d6614fea9747b6"},
+    {file = "banditpam-4.0.2-pp37-pypy37_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:92f39fc9c10a6b48a30f8b8c2f2f1e80e40ad4660fd4b2dc4f3685e688209170"},
+    {file = "banditpam-4.0.2-pp37-pypy37_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:73b6e9e3808a5db1dc41a8d504e3e3a0a7ecd9ecb76a4cb82651032430c6f1ab"},
+    {file = "banditpam-4.0.2-pp38-pypy38_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:507380320d8006555567d642e1918c43ba2a28dd382bfc7a0486b213993e8f2f"},
+    {file = "banditpam-4.0.2-pp38-pypy38_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:70eb501ad92a469de1f7f3f0bad337196201480ec21f29435357b335694a45da"},
+    {file = "banditpam-4.0.2-pp39-pypy39_pp73-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:743d46c14a9384cfe02c378ca529df72103e57869f986d0facf305de4ef8acf6"},
+    {file = "banditpam-4.0.2-pp39-pypy39_pp73-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d4c8d96b7e3fa5e9a878b8a5dcbf7bd3a522e73693398651c5a13c20b609fd9b"},
+    {file = "banditpam-4.0.2.tar.gz", hash = "sha256:85d9af06746d26e8b58f5e626fbee62a888be1d930db73d9d77b82b547d93cfb"},
+]
+
+[[package]]
 name = "beautifulsoup4"
 version = "4.12.0"
 description = "Screen-scraping library"
@@ -6237,4 +6291,4 @@ cffi = ["cffi (>=1.11)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "~3.11"
-content-hash = "5d60ae4e74098667dfa1a04207ff8f2a8386b0c27340dcc22203d9f0fecc2e94"
+content-hash = "ede0f4900b2faa770b7fe5bf5c097704e9c52e3f53cc9a4d063cfa5a497fd1d4"
