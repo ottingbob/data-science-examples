@@ -2,6 +2,10 @@
 
 These are some scripts that showcase a single topic from a website / blog post:
 
+- bandit_pam_kmedoids_clustering.py
+    > Uses a high peformance implementation of the BanditPam method for clustering data
+    >
+    > Here is the [github repo](https://github.com/motiwari/BanditPAM) where this library is featured
 - self-attention.py
 	> Creates an attention model by just using standard matrix multiplication / operations
 - dimensionality-reduction-algos.py
