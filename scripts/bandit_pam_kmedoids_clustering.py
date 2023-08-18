@@ -28,4 +28,5 @@ for p_idx, point in enumerate(X):
     else:
         plt.scatter(X[p_idx, 0], X[p_idx, 1], color="blue", s=10)
 
+plt.savefig("./assets/kmedoids_clustering.png")
 plt.show()
