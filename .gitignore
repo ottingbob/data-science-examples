@@ -43,3 +43,6 @@ GeoLite2-City_20230407/
 complete_data_science_bootcamp/downloads
 complete_data_science_bootcamp/mnist
 complete_data_science_bootcamp/audiobook-data
+scripts/downloads
+scripts/mnist
+MNIST_100.csv
