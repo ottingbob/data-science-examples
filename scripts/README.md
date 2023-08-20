@@ -7,6 +7,9 @@ These are some scripts that showcase a single topic from a website / blog post:
     >
 	![kmedoids_clustering](../assets/kmedoids_clustering.png)
     > Here is the [github repo](https://github.com/motiwari/BanditPAM) where this library is featured
+- mnist_kmedoids_clustering.py
+    > Uses a high peformance implementation of the BanditPam method for clustering data. This specific example uses MNIST data<br/>
+	![kmedoids_clustering](../assets/mnist_kmedoids_clustering.png)
 - self-attention.py
 	> Creates an attention model by just using standard matrix multiplication / operations
 - dimensionality-reduction-algos.py
