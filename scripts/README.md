@@ -5,8 +5,10 @@ These are some scripts that showcase a single topic from a website / blog post:
 - bandit_pam_kmedoids_clustering.py
     > Uses a high peformance implementation of the BanditPam method for clustering data
     >
-	![kmedoids_clustering](../assets/kmedoids_clustering.png)
     > Here is the [github repo](https://github.com/motiwari/BanditPAM) where this library is featured
+    >
+    > Here is the [paper](https://proceedings.neurips.cc/paper/2020/file/73b817090081cef1bca77232f4532c5d-Paper.pdf) where this methodology is explained<br/>
+	![kmedoids_clustering](../assets/kmedoids_clustering.png)
 - mnist_kmedoids_clustering.py
     > Uses a high peformance implementation of the BanditPam method for clustering data. This specific example uses MNIST data<br/>
 	![kmedoids_clustering](../assets/mnist_kmedoids_clustering.png)
