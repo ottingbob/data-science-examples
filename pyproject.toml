@@ -57,6 +57,8 @@ diagrams = "^0.23.3"
 tensorflow = "^2.13.0"
 tensorflow-datasets = "^4.9.2"
 banditpam = "^4.0.2"
+mlxtend = "^0.22.0"
+opencv-python = "^4.8.1.78"
 
 [tool.poetry.group.dev.dependencies]
 black = "^22.12.0"
