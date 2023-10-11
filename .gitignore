@@ -18,6 +18,7 @@ financial_analyst_course_2023/*.xlsm
 financial_analyst_course_2023/*.xlsx
 financial_analyst_course_2023/*.xlsx#
 ml-powered-applications/
+mldl_bootcamp_resources/
 
 # Locally build models
 building_ml_powered_apps/models/

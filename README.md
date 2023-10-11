@@ -86,6 +86,13 @@ RuntimeError: Building llvmlite requires LLVM 10.0.x or 9.0.x, got '11.1.0'. Be 
 
 ### Resources
 
+TODO: Add this to Makefile
+Line count of files in a given directory
+```bash
+find ./quantitative_finance_algorithmic_trading -name '*.py' | xargs wc -l | tail -n1
+find ./machine_learning_and_deep_learning_bootcamp -name '*.py' | xargs wc -l | tail -n1
+```
+
 Here is a [pandas cookbook](https://github.com/jvns/pandas-cookbook) that would be good for adding some examples from into this repo...
 
 An interesting thing to check out could be [this python profiler py-spy](https://github.com/benfred/py-spy) which allows you to profile and debug any running python program, even if it is serving production traffic
